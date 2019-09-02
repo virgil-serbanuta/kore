@@ -10,6 +10,7 @@ module Kore.Internal.TermLike
     ( TermLikeF (..)
     , TermLike (..)
     , Evaluated (..)
+    , Simplified (..)
     , Builtin
     , extractAttributes
     , isFunctionPattern
@@ -26,6 +27,7 @@ module Kore.Internal.TermLike
     , fromConcrete
     , substitute
     , externalizeFreshVariables
+    , eliminateSimplified
     -- * Utility functions for dealing with sorts
     , forceSort
     -- * Pure Kore pattern constructors
@@ -64,6 +66,8 @@ module Kore.Internal.TermLike
     , mkSortVariable
     , mkInhabitant
     , mkEvaluated
+    , mkSimplified
+    , mkSimplifiedIfNeeded
     , elemVarS
     , setVarS
     -- * Predicate constructors
@@ -119,6 +123,7 @@ module Kore.Internal.TermLike
     , pattern StringLiteral_
     , pattern CharLiteral_
     , pattern Evaluated_
+    , pattern Simplified_
     -- * Re-exports
     , Symbol (..)
     , Alias (..)
@@ -272,6 +277,35 @@ instance Synthetic syn Evaluated where
     synthetic = getEvaluated
     {-# INLINE synthetic #-}
 
+{- | @Simplified@ wraps patterns which are fully evaluated.
+
+Fully-evaluated patterns will not be simplified further because no progress
+could be made.
+
+-}
+newtype Simplified child = Simplified { getSimplified :: child }
+    deriving (Eq, Foldable, Functor, GHC.Generic, Ord, Show, Traversable)
+
+instance SOP.Generic (Simplified child)
+
+instance SOP.HasDatatypeInfo (Simplified child)
+
+instance Debug child => Debug (Simplified child)
+
+instance Hashable child => Hashable (Simplified child)
+
+instance NFData child => NFData (Simplified child)
+
+instance Unparse child => Unparse (Simplified child) where
+    unparse evaluated =
+        Pretty.vsep ["/* simplified: */", Unparser.unparseGeneric evaluated]
+    unparse2 evaluated =
+        Pretty.vsep ["/* simplified: */", Unparser.unparse2Generic evaluated]
+
+instance Synthetic syn Simplified where
+    synthetic = getSimplified
+    {-# INLINE synthetic #-}
+
 -- | The type of internal domain values.
 type Builtin = Domain.Builtin (TermLike Concrete)
 
@@ -301,6 +335,7 @@ data TermLikeF variable child
     | TopF           !(Top Sort child)
     | InhabitantF    !(Inhabitant child)
     | BuiltinF       !(Builtin child)
+    | SimplifiedF    !(Simplified child)
     | EvaluatedF     !(Evaluated child)
     | StringLiteralF !(Const StringLiteral child)
     | CharLiteralF   !(Const CharLiteral child)
@@ -334,6 +369,7 @@ instance
   where
     unparse = Unparser.unparseGeneric
     unparse2 = Unparser.unparse2Generic
+
 
 {- | Use the provided mapping to replace all variables in a 'TermLikeF' head.
 
@@ -388,6 +424,7 @@ traverseVariablesF traversing =
         TopF topP -> pure (TopF topP)
         InhabitantF s -> pure (InhabitantF s)
         EvaluatedF childP -> pure (EvaluatedF childP)
+        SimplifiedF childP -> pure (SimplifiedF childP)
   where
     traverseConstVariable (Const variable) =
         Const <$> traverse traversing variable
@@ -422,8 +459,8 @@ instance
     Eq (TermLike variable)
   where
     (==)
-        (Recursive.project -> _ :< pat1)
-        (Recursive.project -> _ :< pat2)
+        (Recursive.project . eliminateSimplified -> _ :< pat1)
+        (Recursive.project . eliminateSimplified -> _ :< pat2)
       = pat1 == pat2
 
 instance
@@ -431,12 +468,12 @@ instance
     Ord (TermLike variable)
   where
     compare
-        (Recursive.project -> _ :< pat1)
-        (Recursive.project -> _ :< pat2)
+        (Recursive.project . eliminateSimplified -> _ :< pat1)
+        (Recursive.project . eliminateSimplified -> _ :< pat2)
       = compare pat1 pat2
 
 instance Hashable variable => Hashable (TermLike variable) where
-    hashWithSalt salt (Recursive.project -> _ :< pat) = hashWithSalt salt pat
+    hashWithSalt salt (Recursive.project . eliminateSimplified -> _ :< pat) = hashWithSalt salt pat
     {-# INLINE hashWithSalt #-}
 
 instance NFData variable => NFData (TermLike variable) where
@@ -552,9 +589,9 @@ instance Corecursive (TermLike variable) where
     {-# INLINE gpostpro #-}
 
 instance TopBottom (TermLike variable) where
-    isTop (Recursive.project -> _ :< TopF Top {}) = True
+    isTop (Recursive.project . eliminateSimplified -> _ :< TopF Top {}) = True
     isTop _ = False
-    isBottom (Recursive.project -> _ :< BottomF Bottom {}) = True
+    isBottom (Recursive.project . eliminateSimplified -> _ :< BottomF Bottom {}) = True
     isBottom _ = False
 
 extractAttributes :: TermLike variable -> Attribute.Pattern variable
@@ -582,6 +619,10 @@ instance
             _ -> pure termLike
       where
         _ :< termLikeF = Recursive.project termLike
+
+instance Simplification (TermLike variable) where
+    extractSimplified (Simplified_ child) = Just child
+    extractSimplified _ = Nothing
 
 freeVariables :: TermLike variable -> FreeVariables variable
 freeVariables = Attribute.freeVariables . extractAttributes
@@ -686,6 +727,16 @@ traverseVariables traversing =
             (:<)
                 <$> Attribute.traverseVariables traversing attrs
                 <*> (traverseVariablesF traversing =<< sequence pat)
+
+{- | Replaces all SimplifiedF terms with their contents. -}
+eliminateSimplified
+    :: TermLike variable
+    -> TermLike variable
+eliminateSimplified =
+    Recursive.fold eliminateSimplifiedWorker
+  where
+    eliminateSimplifiedWorker (_ :< (SimplifiedF (Simplified pat))) = pat
+    eliminateSimplifiedWorker pat = Recursive.embed pat
 
 {- | Construct a @'TermLike' 'Concrete'@ from any 'TermLike'.
 
@@ -934,6 +985,7 @@ forceSort forcedSort = Recursive.apo forceSortWorker
             case pattern' of
                 -- Recurse
                 EvaluatedF evaluated -> EvaluatedF (Right <$> evaluated)
+                SimplifiedF evaluated -> SimplifiedF (Right <$> evaluated)
                 -- Predicates: Force sort and stop.
                 BottomF bottom' -> BottomF bottom' { bottomSort = forcedSort }
                 TopF top' -> TopF top' { topSort = forcedSort }
@@ -1671,6 +1723,19 @@ mkEvaluated
     -> TermLike variable
 mkEvaluated = synthesize . EvaluatedF . Evaluated
 
+mkSimplified
+    :: (Ord variable, SortedVariable variable)
+    => TermLike variable
+    -> TermLike variable
+mkSimplified = synthesize . SimplifiedF . Simplified
+
+mkSimplifiedIfNeeded
+    :: (Ord variable, SortedVariable variable)
+    => TermLike variable
+    -> TermLike variable
+mkSimplifiedIfNeeded s@(Simplified_ _) = s
+mkSimplifiedIfNeeded thing = mkSimplified thing
+
 mkSort :: Id -> Sort
 mkSort name = SortActualSort $ SortActual name []
 
@@ -1964,6 +2029,8 @@ pattern CharLiteral_ :: Char -> TermLike variable
 
 pattern Evaluated_ :: TermLike variable -> TermLike variable
 
+pattern Simplified_ :: TermLike variable -> TermLike variable
+
 pattern And_ andSort andFirst andSecond <-
     (Recursive.project -> _ :< AndF And { andSort, andFirst, andSecond })
 
@@ -2108,3 +2175,6 @@ pattern CharLiteral_ char <-
 
 pattern Evaluated_ child <-
     (Recursive.project -> _ :< EvaluatedF (Evaluated child))
+
+pattern Simplified_ child <-
+    (Recursive.project -> _ :< SimplifiedF (Simplified child))

@@ -75,7 +75,7 @@ test_ceilSimplification =
             (makeCeil
                 [somethingOfAExpanded, somethingOfBExpanded]
             )
-        assertEqualWithExplanation "" expected actual
+        assertEqualWithExplanation "" (OrPattern.eliminateSimplified expected) (OrPattern.eliminateSimplified actual)
     , testCase "Ceil - bool operations"
         (do
             -- ceil(top) = top
@@ -139,8 +139,8 @@ test_ceilSimplification =
                 , substitution = Substitution.wrap [(ElemVar Mock.x, fOfB)]
                 }
         assertEqualWithExplanation "ceil(something(a) and equals(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , let
         constructorTerm = Mock.constr20 somethingOfA somethingOfB
       in
@@ -171,8 +171,8 @@ test_ceilSimplification =
                     }
             assertEqualWithExplanation
                 "ceil(constr(something(a), something(b)) and eq(f(a), g(a)))"
-                expected
-                actual
+                (OrPattern.eliminateSimplified expected)
+                (OrPattern.eliminateSimplified actual)
     , testCase "ceil of constructors is top" $ do
         let
             expected = OrPattern.fromPatterns [Pattern.top]
@@ -210,8 +210,8 @@ test_ceilSimplification =
                 }
         assertEqualWithExplanation
             "ceil(functional(something(a), something(b)) and eq(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , testCase "ceil with function symbols" $ do
         -- if term is a function(params), then
         -- ceil(term and predicate and subst)
@@ -236,8 +236,8 @@ test_ceilSimplification =
                 }
         assertEqualWithExplanation
             "ceil(f(a)) and eq(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , testCase "ceil with functional terms" $ do
         -- if term is functional, then
         -- ceil(term and predicate and subst)
@@ -259,8 +259,8 @@ test_ceilSimplification =
                 }
         assertEqualWithExplanation
             "ceil(functional and eq(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , testCase "ceil with evaluated functional terms" $ do
         -- if term is functional, then
         -- ceil(term and predicate and subst)
@@ -282,8 +282,8 @@ test_ceilSimplification =
                 }
         assertEqualWithExplanation
             "ceil(functional and eq(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , testCase "ceil with functional composition" $ do
         -- if term is functional(non-funct, non-funct), then
         -- ceil(term and predicate and subst)
@@ -313,8 +313,8 @@ test_ceilSimplification =
                 }
         assertEqualWithExplanation
             "ceil(functional(non-funct, non-funct) and eq(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , testCase "ceil with axioms" $ do
         -- if term is functional(non-funct, non-funct), then
         -- ceil(term and predicate and subst)
@@ -353,8 +353,8 @@ test_ceilSimplification =
                 }
         assertEqualWithExplanation
             "ceil(functional(non-funct, non-funct) and eq(f(a), g(a)))"
-            expected
-            actual
+            (OrPattern.eliminateSimplified expected)
+            (OrPattern.eliminateSimplified actual)
     , testCase "ceil with normal domain value" $ do
         -- ceil(1) = top
         let
@@ -392,7 +392,7 @@ test_ceilSimplification =
                 , predicate = makeTruePredicate
                 , substitution = mempty
                 }
-        assertEqualWithExplanation "ceil(map)" expected actual
+        assertEqualWithExplanation "ceil(map)" (OrPattern.eliminateSimplified expected) (OrPattern.eliminateSimplified actual)
     , testCase "ceil with list domain value" $ do
         -- ceil([a, b]) = ceil(a) and ceil(b)
         let
@@ -412,7 +412,7 @@ test_ceilSimplification =
                 , predicate = makeTruePredicate
                 , substitution = mempty
                 }
-        assertEqualWithExplanation "ceil(list)" expected actual
+        assertEqualWithExplanation "ceil(list)" (OrPattern.eliminateSimplified expected) (OrPattern.eliminateSimplified actual)
     , testCase "ceil with concrete set domain value" $ do
         -- sets assume that their concrete elements are relatively functional,
         -- so ceil({a, b}) = top

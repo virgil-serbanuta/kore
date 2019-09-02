@@ -55,6 +55,8 @@ import qualified Kore.Unification.Substitution as Substitution
 import           Kore.Unparser
 import           Kore.Variables.Fresh
 
+--import Debug.Trace
+
 {-|'simplify' simplifies an 'Equals' pattern made of 'OrPattern's.
 
 This uses the following simplifications
@@ -140,7 +142,8 @@ simplify
     => Predicate variable
     -> Equals Sort (OrPattern variable)
     -> simplifier (OrPattern variable)
-simplify predicate Equals { equalsFirst = first, equalsSecond = second } =
+simplify predicate Equals { equalsFirst = first, equalsSecond = second } = do
+    --traceM "simplify"
     simplifyEvaluated predicate first second
 
 {- TODO (virgil): Preserve pattern sorts under simplification.
@@ -171,16 +174,22 @@ simplifyEvaluated predicate first second
   | first == second = return OrPattern.top
   -- TODO: Maybe simplify equalities with top and bottom to ceil and floor
   | otherwise = do
+    --traceM "simplifyEvaluated"
     let isFunctionConditional Conditional {term} = isFunctionPattern term
     case (firstPatterns, secondPatterns) of
-        ([firstP], [secondP]) -> makeEvaluate firstP secondP predicate
+        ([firstP], [secondP]) -> do
+            --traceM "simplifyEvaluated.1"
+            makeEvaluate firstP secondP predicate
         ([firstP], _)
-            | isFunctionConditional firstP ->
+            | isFunctionConditional firstP -> do
+                --traceM "simplifyEvaluated.2"
                 makeEvaluateFunctionalOr predicate firstP secondPatterns
         (_, [secondP])
-            | isFunctionConditional secondP ->
+            | isFunctionConditional secondP -> do
+                --traceM "simplifyEvaluated.3"
                 makeEvaluateFunctionalOr predicate secondP firstPatterns
-        _ ->
+        _ -> do
+            --traceM "simplifyEvaluated.4"
             makeEvaluate
                 (OrPattern.toPattern first)
                 (OrPattern.toPattern second)
@@ -202,6 +211,7 @@ makeEvaluateFunctionalOr
     -> [Pattern variable]
     -> simplifier (OrPattern variable)
 makeEvaluateFunctionalOr predicate first seconds = do
+    --traceM "makeEvaluateFunctionalOr"
     firstCeil <- Ceil.makeEvaluate predicate first
     secondCeilsWithProofs <- mapM (Ceil.makeEvaluate predicate) seconds
     firstNotCeil <- Not.simplifyEvaluated firstCeil
@@ -265,7 +275,9 @@ makeEvaluate
         }
     predicate
   = do
+    --traceM "makeEvaluate.1"
     result <- makeEvaluateTermsToPredicate firstTerm secondTerm predicate
+    --traceM ("makeEvaluate.1.result \n" ++ show (unparseToString <$> result))
     return (Pattern.fromPredicate <$> result)
 
 makeEvaluate
@@ -273,6 +285,7 @@ makeEvaluate
     second@Conditional { term = secondTerm }
     predicate
   = do
+    --traceM "makeEvaluate.2"
     let first' = first { term = if termsAreEqual then mkTop_ else firstTerm }
     firstCeil <- Ceil.makeEvaluate predicate first'
     let second' = second { term = if termsAreEqual then mkTop_ else secondTerm }

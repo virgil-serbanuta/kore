@@ -83,6 +83,7 @@ import           Kore.Internal.Pattern
                  ( Conditional (..), Pattern )
 import qualified Kore.Internal.Pattern as Pattern
 import           Kore.Internal.TermLike
+import qualified Kore.Internal.TermLike as TermLike
 import           Kore.Step.Simplification.Data as Simplifier
 import           Kore.Syntax.Sentence
                  ( SentenceSort (..) )
@@ -380,6 +381,7 @@ internalize tools termLike@(App_ symbol args)
         _ -> termLike
   where
     asInternal' = asInternal tools (termLikeSort termLike)
+internalize tools (Simplified_ child) = internalize tools child
 internalize _ termLike = termLike
 
 {- | Find the symbol hooked to @LIST.get@ in an indexed module.
@@ -433,7 +435,7 @@ unifyEquals
     first
     second
   =
-    unifyEquals0 first second
+    unifyEquals0 (TermLike.eliminateSimplified first) (TermLike.eliminateSimplified second)
   where
     propagatePredicates
         :: Traversable t

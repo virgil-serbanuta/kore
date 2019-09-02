@@ -242,7 +242,7 @@ test_applicationSimplification =
                             ]
                         ]
                     )
-            assertEqualWithExplanation "" expect actual
+            assertEqualWithExplanation "" (OrPattern.eliminateSimplified expect) (OrPattern.eliminateSimplified actual)
         ]
     ]
   where

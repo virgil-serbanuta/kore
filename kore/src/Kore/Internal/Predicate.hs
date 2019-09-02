@@ -18,6 +18,7 @@ module Kore.Internal.Predicate
     , toPredicate
     , freeVariables
     , Kore.Internal.Predicate.mapVariables
+    , eliminateSimplified
     -- * Re-exports
     , Conditional (..)
     ) where
@@ -32,6 +33,7 @@ import qualified Kore.Predicate.Predicate as Syntax
                  ( Predicate )
 import qualified Kore.Predicate.Predicate as Syntax.Predicate
 import           Kore.Syntax
+import qualified Kore.Unification.Substitution as Substitution
 import           Kore.Unparser
 
 -- | A predicate and substitution without an accompanying term.
@@ -115,3 +117,18 @@ mapVariables
     -> Predicate variable1
     -> Predicate variable2
 mapVariables = Conditional.mapVariables (\_ () -> ())
+
+{-|'eliminateSimplified' replaces all SimplifiedF terms with their children
+in an Pattern.
+-}
+eliminateSimplified
+    :: Ord variable
+    => Predicate variable
+    -> Predicate variable
+eliminateSimplified
+    Conditional { term = (), predicate, substitution }
+  = Conditional
+        { term = ()
+        , predicate = Syntax.Predicate.eliminateSimplified predicate
+        , substitution = Substitution.eliminateSimplified substitution
+        }

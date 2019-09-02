@@ -53,6 +53,7 @@ substitute
         , Functor patternBase
         , CofreeF patternBase attribute ~ Base patternType
         , Binding patternType
+        , Simplification patternType
         , VariableType patternType ~ UnifiedVariable variable
         , Synthetic attribute patternBase
         )
@@ -90,7 +91,7 @@ substitute viewFreeVariables =
         -> patternType
         -> patternType
     substituteWorker subst termLike =
-        substituteNone <|> substituteBinder <|> substituteVariable
+        substituteNone <|> substituteSimplified <|> substituteBinder <|> substituteVariable
         & fromMaybe substituteDefault
       where
         -- | Special case: None of the targeted variables occurs in the pattern.
@@ -99,6 +100,11 @@ substitute viewFreeVariables =
         substituteNone
           | Map.null subst' = pure termLike
           | otherwise       = empty
+
+        substituteSimplified :: Maybe patternType
+        substituteSimplified = do
+            simplified <- extractSimplified termLike
+            return (substituteWorker subst simplified)
 
         -- | Special case: The pattern is a binder.
         -- The bound variable may be renamed to avoid capturing free variables

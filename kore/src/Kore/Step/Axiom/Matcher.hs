@@ -98,6 +98,7 @@ matchOne
     -> MatcherT variable unifier ()
 matchOne pair =
     (   matchVariable    pair
+    <|> matchSimplified  pair
     <|> matchEqualHeads  pair
     <|> matchExists      pair
     <|> matchForall      pair
@@ -243,6 +244,18 @@ matchVariable (Pair (SetVar_ variable1) term2) = do
     targetCheck (SetVar variable1)
     setSubstitute variable1 term2
 matchVariable _ = empty
+
+matchSimplified
+    :: (MatchingVariable variable, MonadUnify unifier)
+    => Pair (TermLike variable)
+    -> MaybeT (MatcherT variable unifier) ()
+matchSimplified (Pair (Simplified_ first) (Simplified_ second)) =
+    push (Pair first second)
+matchSimplified (Pair (Simplified_ first) second) =
+    push (Pair first second)
+matchSimplified (Pair first (Simplified_ second)) =
+    push (Pair first second)
+matchSimplified _ = empty
 
 matchApplication
     :: (MatchingVariable variable, MonadUnify unifier)

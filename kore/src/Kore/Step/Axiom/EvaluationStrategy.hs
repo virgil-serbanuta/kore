@@ -31,6 +31,7 @@ import           Kore.Internal.Predicate
                  ( Predicate )
 import           Kore.Internal.Symbol
 import           Kore.Internal.TermLike
+import qualified Kore.Internal.TermLike as TermLike
 import qualified Kore.Proof.Value as Value
 import           Kore.Step.Axiom.Evaluate
 import           Kore.Step.Rule
@@ -174,7 +175,7 @@ evaluateBuiltin
             substitutionSimplifier
             simplifier
             axiomIdToSimplifier
-            patt
+            (TermLike.eliminateSimplified patt)
             predicate
     case result of
         AttemptedAxiom.NotApplicable

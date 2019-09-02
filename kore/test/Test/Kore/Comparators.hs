@@ -286,8 +286,8 @@ instance
     wrapperField expected actual =
         EqWrap
             "getTermLike = "
-            (getTermLike expected)
-            (getTermLike actual)
+            (getTermLike $ TermLike.eliminateSimplified expected)
+            (getTermLike $ TermLike.eliminateSimplified actual)
     wrapperConstructorName _ = "TermLike"
 
 instance
@@ -2383,6 +2383,12 @@ instance
         SumConstructorDifferent
             (printWithExplanation pattern1) (printWithExplanation pattern2)
 
+    sumConstructorPair (TermLike.SimplifiedF a1) (TermLike.SimplifiedF a2) =
+        SumConstructorSameWithArguments (EqWrap "SimplifiedF" a1 a2)
+    sumConstructorPair pattern1@(TermLike.SimplifiedF _) pattern2 =
+        SumConstructorDifferent
+            (printWithExplanation pattern1) (printWithExplanation pattern2)
+
     sumConstructorPair (TermLike.StringLiteralF a1) (TermLike.StringLiteralF a2) =
         SumConstructorSameWithArguments (EqWrap "StringLiteralF" a1 a2)
     sumConstructorPair pattern1@(TermLike.StringLiteralF _) pattern2 =
@@ -2444,6 +2450,20 @@ instance
   where
     wrapperField = Function.on (EqWrap "getEvaluated = ") getEvaluated
     wrapperConstructorName _ = "Evaluated"
+
+instance
+    (EqualWithExplanation child, Show child) =>
+    EqualWithExplanation (TermLike.Simplified child)
+  where
+    compareWithExplanation = wrapperCompareWithExplanation
+    printWithExplanation = show
+
+instance
+    (EqualWithExplanation child, Show child) =>
+    WrapperEqualWithExplanation (TermLike.Simplified child)
+  where
+    wrapperField = Function.on (EqWrap "getSimplified = ") getSimplified
+    wrapperConstructorName _ = "Simplified"
 
 instance
     (EqualWithExplanation variable, Show variable, Ord variable) =>

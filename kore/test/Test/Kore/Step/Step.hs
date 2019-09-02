@@ -462,7 +462,7 @@ test_applyRewriteRule_ =
                     , substitution = mempty
                     }
         actual <- applyRewriteRule_ initial axiomId
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation "" (fmap OrPattern.eliminateSimplified <$> expect) (fmap OrPattern.eliminateSimplified <$> actual)
 
     -- sigma(sigma(x, x), y) => sigma(x, y)
     -- vs
@@ -498,7 +498,7 @@ test_applyRewriteRule_ =
                     , substitution = mempty
                     }
         actual <- applyRewriteRule_ initial axiomSigmaXXY
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation "" (fmap OrPattern.eliminateSimplified <$> expect) (fmap OrPattern.eliminateSimplified <$> actual)
 
     -- x => x ensures g(x)=f(x)
     -- vs
@@ -528,7 +528,7 @@ test_applyRewriteRule_ =
             initial = Pattern.fromTermLike (mkElemVar Mock.x)
             axiom = RewriteRule ruleId { ensures }
         actual <- applyRewriteRule_ initial axiom
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation "" (fmap OrPattern.eliminateSimplified <$> expect) (fmap OrPattern.eliminateSimplified <$> actual)
 
     -- x => x requires g(x)=f(x)
     -- vs
@@ -545,7 +545,7 @@ test_applyRewriteRule_ =
             initial = pure (mkElemVar Mock.x)
             axiom = RewriteRule ruleId { requires }
         actual <- applyRewriteRule_ initial axiom
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation "" (fmap OrPattern.eliminateSimplified <$> expect) (fmap OrPattern.eliminateSimplified <$> actual)
 
     , testCase "rule a => \\bottom" $ do
         let expect = Right [ OrPattern.fromPatterns [] ]
@@ -666,8 +666,8 @@ checkResults
     -> Assertion
 checkResults expect actual =
     assertEqualWithExplanation "compare results"
-        expect
-        (Step.gatherResults actual)
+        (OrPattern.eliminateSimplified expect)
+        (OrPattern.eliminateSimplified $ Step.gatherResults actual)
 
 checkRemainders
     :: HasCallStack
@@ -676,8 +676,8 @@ checkRemainders
     -> Assertion
 checkRemainders expect actual =
     assertEqualWithExplanation "compare remainders"
-        expect
-        (Step.remainders actual)
+        (OrPattern.eliminateSimplified expect)
+        (OrPattern.eliminateSimplified $ Step.remainders actual)
 
 test_applyRewriteRulesParallel :: [TestTree]
 test_applyRewriteRulesParallel =

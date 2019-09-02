@@ -39,6 +39,7 @@ module Kore.Predicate.Predicate
     , Kore.Predicate.Predicate.freeElementVariables
     , Kore.Predicate.Predicate.hasFreeVariable
     , Kore.Predicate.Predicate.mapVariables
+    , eliminateSimplified
     , stringFromPredicate
     , substitutionToPredicate
     , fromPredicate
@@ -48,6 +49,8 @@ module Kore.Predicate.Predicate
     , Kore.Predicate.Predicate.substitute
     ) where
 
+import           Control.Comonad.Trans.Cofree
+                 ( CofreeF ((:<)) )
 import           Control.DeepSeq
                  ( NFData )
 import           Data.Functor.Foldable
@@ -71,7 +74,7 @@ import           Kore.Debug
 import           Kore.Error
                  ( Error, koreFail )
 import           Kore.Internal.TermLike hiding
-                 ( freeVariables )
+                 ( eliminateSimplified, freeVariables )
 import qualified Kore.Internal.TermLike as TermLike
 import           Kore.TopBottom
                  ( TopBottom (..) )
@@ -537,6 +540,11 @@ makePredicate = Recursive.elgot makePredicateBottomUp makePredicateTopDown
 -}
 mapVariables :: Ord to => (from -> to) -> Predicate from -> Predicate to
 mapVariables f = fmap (TermLike.mapVariables f)
+
+{- | Replace all SimplifiedF occurences in a @Predicate@ with their children.
+-}
+eliminateSimplified :: Predicate variable -> Predicate variable
+eliminateSimplified = fmap TermLike.eliminateSimplified
 
 {- | Extract the set of free variables from a @Predicate@.
 -}

@@ -22,6 +22,8 @@ import           Kore.Internal.Pattern
 import qualified Kore.Internal.Pattern as Pattern
 import           Kore.Internal.Predicate as Predicate
 import           Kore.Internal.TermLike
+import qualified Kore.Profiler.Profile as Profile
+                 ( applicationSimplification )
 import           Kore.Step.Function.Evaluator
                  ( evaluateApplication )
 import           Kore.Step.Simplification.Data as Simplifier
@@ -55,7 +57,7 @@ simplify
     => Predicate variable
     -> Application Symbol (OrPattern variable)
     -> simplifier (OrPattern variable)
-simplify predicate application = do
+simplify predicate application = Profile.applicationSimplification children $ do
     evaluated <-
         traverse
             (makeAndEvaluateApplications predicate symbol)
@@ -98,9 +100,8 @@ makeAndEvaluateSymbolApplications
 makeAndEvaluateSymbolApplications predicate symbol children = do
     expandedApplications <-
         BranchT.gather $ makeExpandedApplication symbol children
-    orResults <- traverse
-                    (evaluateApplicationFunction predicate)
-                    expandedApplications
+    orResults <-
+        traverse (evaluateApplicationFunction predicate) expandedApplications
     return (MultiOr.mergeAll orResults)
 
 evaluateApplicationFunction
@@ -118,11 +119,11 @@ evaluateApplicationFunction
 evaluateApplicationFunction
     configurationPredicate
     Conditional { term, predicate, substitution }
-  =
-    evaluateApplication
-        configurationPredicate
-        Conditional { term = (), predicate, substitution }
-        term
+  = fmap (fmap mkSimplifiedIfNeeded)
+        <$> evaluateApplication
+            configurationPredicate
+            Conditional { term = (), predicate, substitution }
+            term
 
 makeExpandedApplication
     ::  ( Show variable

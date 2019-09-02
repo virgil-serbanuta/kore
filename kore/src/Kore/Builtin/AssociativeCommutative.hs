@@ -81,8 +81,9 @@ import           Kore.Internal.Symbol
                  ( Symbol )
 import           Kore.Internal.TermLike
                  ( pattern App_, pattern BuiltinMap_, pattern BuiltinSet_,
-                 Concrete, pattern ElemVar_, TermLike, pattern Var_,
-                 mkApplySymbol, mkBuiltin, mkElemVar, termLikeSort )
+                 Concrete, pattern ElemVar_, pattern Simplified_, TermLike,
+                 pattern Var_, mkApplySymbol, mkBuiltin, mkElemVar,
+                 termLikeSort )
 import qualified Kore.Internal.TermLike as TermLike
 import           Kore.Sort
                  ( Sort )
@@ -202,6 +203,7 @@ instance TermWrapper Domain.NormalizedMap where
         case args of
             [set1, set2] -> toNormalized set1 <> toNormalized set2
             _ -> Builtin.wrongArity "MAP.concat"
+    toNormalized (Simplified_ child) = toNormalized child
     toNormalized patt =
         (Normalized . Domain.wrapAc) Domain.NormalizedAc
             { elementsWithVariables = []
@@ -265,6 +267,7 @@ instance TermWrapper Domain.NormalizedSet where
         case args of
             [set1, set2] -> toNormalized set1 <> toNormalized set2
             _ -> Builtin.wrongArity "SET.concat"
+    toNormalized (Simplified_ child) = toNormalized child
     toNormalized patt =
         (Normalized . Domain.wrapAc) Domain.NormalizedAc
             { elementsWithVariables = []

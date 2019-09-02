@@ -272,6 +272,10 @@ externalizePattern =
                 Cofree.tailF
                 $ externalizePatternWorker
                 $ getEvaluated evaluatedF
+            SimplifiedF simplifiedF ->
+                Cofree.tailF
+                $ externalizePatternWorker
+                $ getSimplified simplifiedF
             BuiltinF _ -> error "Unexpected internal builtin"
 
 {- | Convert a 'TermLike' to its internal representation.

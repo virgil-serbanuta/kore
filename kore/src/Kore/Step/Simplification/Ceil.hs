@@ -202,6 +202,10 @@ makeEvaluateTerm
                                         configurationPredicate
                                         child
 
+      | SimplifiedF (Simplified child) <- projected =
+        makeEvaluateTerm configurationPredicate child
+      | EvaluatedF (Evaluated child) <- projected =
+        makeEvaluateTerm configurationPredicate child
       | otherwise = do
             substitutionSimplifier <- Simplifier.askSimplifierPredicate
             simplifier <- Simplifier.askSimplifierTermLike

@@ -6,6 +6,7 @@ License     : NCSA
 
 module Kore.Variables.Binding
     ( Binding (..)
+    , Simplification (..)
     , matchWith
     -- * Binders
     , Binder (..)
@@ -25,6 +26,9 @@ import Kore.Syntax.Forall
 import Kore.Syntax.Mu
 import Kore.Syntax.Nu
 import Kore.Variables.UnifiedVariable
+
+class Simplification patternType where
+    extractSimplified :: patternType -> Maybe patternType
 
 {- | @Binding@ defines traversals for patterns with binders.
 

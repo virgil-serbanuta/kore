@@ -37,7 +37,7 @@ genSeqInteger = Gen.seq (Range.linear 0 16) genInteger
 
 test_getUnit :: TestTree
 test_getUnit =
-    testPropertyWithSolver "get{}(unit{}(), _) === \\bottom{}()" $ do
+    testPropertyWithSolver "zzzget{}(unit{}(), _) === \\bottom{}()" $ do
         k <- forAll genInteger
         let patGet =
                 mkApplySymbol getListSymbol
@@ -45,8 +45,8 @@ test_getUnit =
                     , Test.Int.asInternal k
                     ]
             predicate = mkEquals_ mkBottom_ patGet
-        (===) Pattern.bottom =<< evaluateT patGet
-        (===) Pattern.top    =<< evaluateT predicate
+        (===) Pattern.bottom =<< Pattern.eliminateSimplified <$> evaluateT patGet
+        (===) Pattern.top    =<< Pattern.eliminateSimplified <$> evaluateT predicate
 
 test_getFirstElement :: TestTree
 test_getFirstElement =
@@ -66,8 +66,8 @@ test_getFirstElement =
             patFirst = maybe mkBottom_ Test.Int.asInternal value
             predicate = mkEquals_ patGet patFirst
         let expectGet = Test.Int.asPartialPattern value
-        (===) expectGet   =<< evaluateT patGet
-        (===) Pattern.top =<< evaluateT predicate
+        (===) expectGet   =<< Pattern.eliminateSimplified <$> evaluateT patGet
+        (===) Pattern.top =<< Pattern.eliminateSimplified <$> evaluateT predicate
 
 test_getLastElement :: TestTree
 test_getLastElement =

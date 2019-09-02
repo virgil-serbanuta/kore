@@ -48,7 +48,7 @@ simplifyAndRemoveTopExists
     -> simplifier (OrPattern variable)
 simplifyAndRemoveTopExists patt = do
     simplified <- simplify patt
-    return (removeTopExists <$> simplified)
+    return (Pattern.eliminateSimplified . removeTopExists <$> simplified)
   where
     removeTopExists :: Pattern variable -> Pattern variable
     removeTopExists p@Conditional{ term = Exists_ _ _ quantified } =

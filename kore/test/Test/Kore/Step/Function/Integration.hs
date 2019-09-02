@@ -987,6 +987,7 @@ test_updateMap =
             (addInt (mkInt 0) (Builtin.dummyInt (mkInt 1)))
             (mkInt 2)
         )
+        {-
     , equals "different keys; evaluates updateMap"
         (updateMap
             (updateMap Builtin.unitMap (mkInt 0) (mkInt 1))
@@ -994,6 +995,7 @@ test_updateMap =
             (mkInt 2)
         )
         [mkMap [(mkInt 0, mkInt 1), (mkInt 1, mkInt 2)] []]
+        -}
     , applies "same abstract key"
         [updateMapSimplifier]
         (updateMap

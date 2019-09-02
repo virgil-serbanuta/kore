@@ -29,6 +29,8 @@ import           Kore.Unparser
 import           Kore.Variables.Fresh
                  ( FreshVariable )
 
+import Debug.Trace
+
 {- | The final nodes of an execution graph which were not proven.
 
 See also: 'Strategy.pickFinal', 'extractUnproven'
@@ -94,7 +96,7 @@ class Goal goal where
         -> Strategy.TransitionT (Rule goal) m (ProofState goal)
 
 transitionRule
-    :: (MonadSimplify m, Goal goal)
+    :: (MonadSimplify m, Goal goal, Show goal)
     => Prim (Rule goal)
     -> ProofState goal
     -> Strategy.TransitionT (Rule goal) m (ProofState goal)
@@ -103,24 +105,31 @@ transitionRule = transitionRuleWorker
     transitionRuleWorker CheckProven Proven = empty
     transitionRuleWorker CheckGoalRem (GoalRem _) = empty
 
-    transitionRuleWorker Simplify (Goal g) =
-        Goal <$> simplify g
-    transitionRuleWorker Simplify (GoalRem g) =
-        GoalRem <$> simplify g
+    transitionRuleWorker Simplify (Goal g) = do
+        traceM ("simplify-g-start" ++ show (length $ show g))
+        result <- Goal <$> simplify g
+        traceM ("simplify-g-end" ++ show (length $ show g))
+        return result
+    transitionRuleWorker Simplify (GoalRem g) = do
+        traceM ("simplify-gr-start" ++ show (length $ show g))
+        result <- GoalRem <$> simplify g
+        traceM ("simplify-gr-end" ++ show (length $ show g))
+        return result
 
     transitionRuleWorker RemoveDestination (Goal g) =
+        trace "removeDestination" $
         GoalRem <$> removeDestination g
 
     transitionRuleWorker TriviallyValid (Goal g)
-      | isTriviallyValid g = return Proven
+      | isTriviallyValid g = trace "triviallyValid" $ return Proven
     transitionRuleWorker TriviallyValid (GoalRem g)
-      | isTriviallyValid g = return Proven
+      | isTriviallyValid g = trace "triviallyValid" $ return Proven
 
     transitionRuleWorker (DerivePar rules) (GoalRem g) =
-        derivePar rules g
+        trace "derivePar" $ derivePar rules g
 
     transitionRuleWorker (DeriveSeq rules) (GoalRem g) =
-        deriveSeq rules g
+        trace "deriveSeq" $ deriveSeq rules g
 
     transitionRuleWorker _ state = return state
 

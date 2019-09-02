@@ -26,6 +26,8 @@ import           Data.Maybe
 import           Data.Reflection
 import qualified Data.Text as Text
 import qualified Data.Text.Prettyprint.Doc as Pretty
+import           GHC.Stack
+                 ( HasCallStack )
 
 import qualified Control.Monad.Counter as Counter
 import qualified Kore.Attribute.Symbol as Attribute
@@ -64,7 +66,7 @@ or which contain things that can be evaluated with an SMT solver.
 class Evaluable thing where
     {- | Attempt to evaluate the argument wiith an external SMT solver.
     -}
-    evaluate :: MonadSimplify m => thing -> m (Maybe Bool)
+    evaluate :: (HasCallStack, MonadSimplify m) => thing -> m (Maybe Bool)
 
 instance
     ( SortedVariable variable
@@ -102,6 +104,7 @@ filterMultiOr
         , SortedVariable variable
         , TopBottom term
         , Unparse variable
+        , HasCallStack
         )
     => MultiOr (Conditional variable term)
     -> simplifier (MultiOr (Conditional variable term))

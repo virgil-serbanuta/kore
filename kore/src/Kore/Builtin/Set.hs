@@ -526,7 +526,7 @@ unifyEquals
     tools <- Simplifier.askMetadataTools
     (Monad.guard . fromMaybe False) (isSetSort tools sort1)
     MaybeT $ do
-        unifiers <- Monad.Unify.gather (runMaybeT (unifyEquals0 first second))
+        unifiers <- Monad.Unify.gather (runMaybeT (unifyEquals0 (TermLike.eliminateSimplified first) (TermLike.eliminateSimplified second)))
         case sequence unifiers of
             Nothing -> return Nothing
             Just us -> Monad.Unify.scatter (map Just us)

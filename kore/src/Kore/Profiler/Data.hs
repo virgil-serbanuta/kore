@@ -53,7 +53,9 @@ class Monad profiler => MonadProfiler profiler where
     profileConfiguration :: profiler Configuration
     profileConfiguration =
         return Configuration
-            {identifierFilter = Nothing, dumpIdentifier = Nothing}
+            { identifierFilter = Nothing
+            , dumpIdentifier = Just "Lbl'Hash'sgnInterp'LParUndsCommUndsRParUnds'EVM-DATA'UndsUnds'Int'Unds'Int"
+            }
     {-# INLINE profileConfiguration #-}
 
 -- Instance for tests.

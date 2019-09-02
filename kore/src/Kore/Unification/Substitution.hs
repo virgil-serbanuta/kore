@@ -17,6 +17,7 @@ module Kore.Unification.Substitution
     , wrap
     , modify
     , Kore.Unification.Substitution.mapVariables
+    , eliminateSimplified
     , isNormalized
     , null
     , variables
@@ -214,6 +215,15 @@ mapVariables variableMapper =
         (substVariable, patt)
       =
         (mapper <$> substVariable, TermLike.mapVariables mapper patt)
+
+-- | 'eliminateSimplified' replaces all SimplifiedF occurrences
+-- in the substitution with their children.
+eliminateSimplified
+    :: Ord variable
+    => Substitution variable
+    -> Substitution variable
+eliminateSimplified (NormalizedSubstitution thing) = NormalizedSubstitution (fmap TermLike.eliminateSimplified thing)
+eliminateSimplified (Substitution thing) = Substitution ((fmap . fmap) TermLike.eliminateSimplified thing)
 
 -- | Returns true iff the substitution is normalized.
 isNormalized :: Substitution variable -> Bool

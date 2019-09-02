@@ -46,8 +46,8 @@ test_normalize =
         actual <- normalizeExcept expect
         assertEqualWithExplanation
             "Expected original result"
-            (Right $ MultiOr.make [expect])
-            actual
+            (fmap Predicate.eliminateSimplified <$> (Right $ MultiOr.make [expect]))
+            (fmap Predicate.eliminateSimplified <$> actual)
         Foldable.traverse_ assertNormalizedPredicatesMulti actual
     , testCase "¬∃ y z. x = σ(y, z)" $ do
         let expect =
@@ -56,8 +56,8 @@ test_normalize =
         actual <- normalizeExcept expect
         assertEqualWithExplanation
             "Expected original result"
-            (Right $ MultiOr.make [expect])
-            actual
+            (fmap Predicate.eliminateSimplified <$> (Right $ MultiOr.make [expect]))
+            (fmap Predicate.eliminateSimplified <$> actual)
         Foldable.traverse_ assertNormalizedPredicatesMulti actual
     ]
   where
@@ -174,7 +174,7 @@ test_mergeAndNormalizeSubstitutions =
                         , Mock.constr10 (Mock.f Mock.a)
                         )
                     ]
-            assertEqualWithExplanation "" expect actual
+            assertEqualWithExplanation "" (fmap Predicate.eliminateSimplified <$> expect) (fmap Predicate.eliminateSimplified <$> actual)
             assertNormalizedPredicates actual
 
     , testCase "Constructor and constructor of function with variables"
@@ -296,7 +296,7 @@ test_mergeAndNormalizeSubstitutions =
                             , (ElemVar Mock.x, Mock.constr10 Mock.cg)
                             ]
                         }
-            assertEqualWithExplanation "" expect actual
+            assertEqualWithExplanation "" (Predicate.eliminateSimplified <$> expect) (Predicate.eliminateSimplified <$> actual)
             assertNormalizedPredicatesMulti actual
 
     , testCase "Normalizes substitution and substitutes in predicate"
@@ -325,7 +325,7 @@ test_mergeAndNormalizeSubstitutions =
                             , (ElemVar Mock.x, Mock.constr10 (mkElemVar Mock.y))
                             ]
                         }
-            assertEqualWithExplanation "" expect actual
+            assertEqualWithExplanation "" (Predicate.eliminateSimplified <$>  expect) (Predicate.eliminateSimplified <$> actual)
             assertNormalizedPredicatesMulti actual
     ]
 

@@ -129,11 +129,12 @@ normalizeExcept Conditional { predicate, substitution } = do
                 [predicate, deduplicatedPredicate, normalizedPredicate]
 
     TopBottom.guardAgainstBottom mergedPredicate
-    Branch.alternate $ simplifySubstitution Conditional
+    let unsimplifiedResult = Conditional
             { term = ()
             , predicate = mergedPredicate
             , substitution = normalizedSubstitution
             }
+    Branch.alternate $ simplifySubstitution unsimplifiedResult
   where
 
     normalizeSubstitution' =

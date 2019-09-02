@@ -35,7 +35,7 @@ test_Pattern_simplify =
     becomes original expect name =
         testCase name $ do
             actual <- simplify original
-            assertEqualWithExplanation "" expect actual
+            assertEqualWithExplanation "" (OrPattern.eliminateSimplified expect) (OrPattern.eliminateSimplified actual)
 
 test_Pattern_simplifyAndRemoveTopExists :: [TestTree]
 test_Pattern_simplifyAndRemoveTopExists =

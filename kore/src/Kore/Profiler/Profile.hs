@@ -5,7 +5,8 @@ License     : NCSA
 This should be imported @qualified@.
 -}
 module Kore.Profiler.Profile
-    ( axiomEvaluation
+    ( applicationSimplification
+    , axiomEvaluation
     , equalitySimplification
     , executionQueueLength
     , mergeSubstitutions
@@ -15,6 +16,8 @@ module Kore.Profiler.Profile
 
 import           Control.Monad
                  ( when )
+import qualified Data.List as List
+                 ( foldl' )
 import           Data.Text.Prettyprint.Doc
                  ( Pretty (..) )
 import qualified Data.Text.Prettyprint.Doc as Doc
@@ -56,6 +59,15 @@ equalitySimplification identifier thing action = do
         Nothing -> return ()
     filteredLogging
         identifier ["evaluate", strIdentifier, "0", "total"] action
+
+applicationSimplification
+    :: (MonadProfiler profiler, Foldable children)
+    => [children child] -> profiler result -> profiler result
+applicationSimplification childrenList action = do
+    let childrenLengths = map length childrenList
+        childrenTuplesCount = List.foldl' (*) 1 childrenLengths
+    profileDuration
+        ["applicationSimplification", show childrenTuplesCount] action
 
 -- TODO(virgil): Enable this on-demand.
 axiomEvaluation

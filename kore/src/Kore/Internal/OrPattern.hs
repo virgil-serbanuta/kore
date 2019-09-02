@@ -5,6 +5,7 @@ License     : NCSA
 -}
 module Kore.Internal.OrPattern
     ( OrPattern
+    , eliminateSimplified
     , fromPatterns
     , toPatterns
     , fromPattern
@@ -28,7 +29,8 @@ import qualified Kore.Internal.MultiOr as MultiOr
 import           Kore.Internal.Pattern
                  ( Pattern )
 import qualified Kore.Internal.Pattern as Pattern
-import           Kore.Internal.TermLike
+import           Kore.Internal.TermLike hiding
+                 ( eliminateSimplified )
 import qualified Kore.Predicate.Predicate as Syntax.Predicate
 import           Kore.TopBottom
                  ( TopBottom (..) )
@@ -135,3 +137,13 @@ toTermLike multiOr =
         [] -> mkBottom_
         [patt] -> Pattern.toTermLike patt
         patts -> Foldable.foldr1 mkOr (Pattern.toTermLike <$> patts)
+
+
+{-|'eliminateSimplified' replaces all SimplifiedF terms with their children
+in an OrPattern.
+-}
+eliminateSimplified
+    :: Ord variable
+    => OrPattern variable
+    -> OrPattern variable
+eliminateSimplified = fmap Pattern.eliminateSimplified

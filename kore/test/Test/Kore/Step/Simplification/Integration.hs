@@ -154,7 +154,9 @@ test_simplificationIntegration =
                     , predicate = makeTruePredicate
                     , substitution = mempty
                     }
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation ""
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     , testCase "map function, non-matching" $ do
         let
             initial =
@@ -189,7 +191,9 @@ test_simplificationIntegration =
                     )
                 )
                 initial
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation ""
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     -- Checks that `f(x/x)` evaluates to `x/x and x != 0` when `f` is the identity function and `#ceil(x/y) => y != 0`
     , testCase "function application introduces definedness condition" $ do
         let testSortVariable = SortVariableSort $ SortVariable (testId "s")
@@ -254,7 +258,9 @@ test_simplificationIntegration =
                     , predicate = makeTruePredicate
                     , substitution = mempty
                     }
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation ""
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     , testCase "exists variable equality" $ do
         let
             expect = OrPattern.top
@@ -328,7 +334,9 @@ test_simplificationIntegration =
                     , predicate = makeTruePredicate
                     , substitution = mempty
                     }
-        assertEqualWithExplanation "" expect actual
+        assertEqualWithExplanation ""
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     ]
 
 test_substitute :: [TestTree]
@@ -361,8 +369,8 @@ test_substitute =
                 )
         assertEqualWithExplanation
             "Expected substitution under unary functional constructor"
-            expect
-            actual
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
 
     , testCase "Substitution" $ do
         let expect =
@@ -388,7 +396,9 @@ test_substitute =
                         (Mock.functionalConstr20 Mock.a (mkElemVar Mock.y))
                     )
                 )
-        assertEqualWithExplanation "Expected substitution" expect actual
+        assertEqualWithExplanation "Expected substitution"
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     ]
 
 test_substituteMap :: [TestTree]
@@ -419,8 +429,8 @@ test_substituteMap =
                 )
         assertEqualWithExplanation
             "Expected substitution applied to Map elements"
-            expect
-            actual
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     ]
   where
     mkDomainBuiltinMap = Mock.builtinMap
@@ -453,8 +463,8 @@ test_substituteList =
                 )
         assertEqualWithExplanation
             "Expected substitution applied to List elements"
-            expect
-            actual
+            (OrPattern.eliminateSimplified expect)
+            (OrPattern.eliminateSimplified actual)
     ]
   where
     mkDomainBuiltinList = Mock.builtinList

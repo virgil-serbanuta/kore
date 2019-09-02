@@ -21,7 +21,7 @@ import qualified Data.Text.Prettyprint.Doc as Pretty
 
 import qualified Kore.Internal.MultiOr as MultiOr
 import           Kore.Internal.Pattern as Pattern
-import           Kore.Internal.TermLike
+import           Kore.Internal.TermLike as TermLike
 import qualified Kore.Predicate.Predicate as Syntax.Predicate
 import qualified Kore.Predicate.Predicate as Syntax
                  ( Predicate )
@@ -170,7 +170,7 @@ andSimplifySuccess term1 term2 results = do
         $ evalSimplifier testEnv
         $ Monad.Unify.runUnifierT
         $ simplifyAnds (unificationProblem term1 term2 :| [])
-    assertEqualWithExplanation message expect subst'
+    assertEqualWithExplanation message (Pattern.eliminateSimplified <$> expect) (Pattern.eliminateSimplified <$> subst')
   where
     message =
         (show . Pretty.vsep)
@@ -249,9 +249,17 @@ unificationProcedureSuccessWithSimplifiers
             normalize Conditional { substitution, predicate } =
                 (Substitution.unwrap substitution, predicate)
         assertEqualWithExplanation ""
-            expect
-            (map normalize results)
-
+            (elimS <$> expect)
+            (elimS <$> map normalize results)
+  where
+    elimS
+        ::  ( [(UnifiedVariable Variable, TermLike Variable)]
+            , Syntax.Predicate Variable
+            )
+        ->  ( [(UnifiedVariable Variable, TermLike Variable)]
+            , Syntax.Predicate Variable
+            )
+    elimS (aa, bb) = (fmap TermLike.eliminateSimplified <$> aa, Syntax.Predicate.eliminateSimplified bb)
 unificationProcedureSuccess
     :: HasCallStack
     => TestName
@@ -520,7 +528,7 @@ test_evaluated =
         (UnificationTerm (mkElemVar Mock.x))
         (UnificationTerm (mkEvaluated a5))
         [   ( [("x", mkEvaluated a5)]
-            , Syntax.Predicate.makeCeilPredicate (mkEvaluated a5)
+            , Syntax.Predicate.makeCeilPredicate a5
             )
         ]
     ]

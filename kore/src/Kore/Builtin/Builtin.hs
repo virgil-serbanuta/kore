@@ -567,7 +567,7 @@ unaryOperator
         -> [TermLike variable]
         -> m (AttemptedAxiom variable)
     unaryOperator0 _ resultSort children =
-        case Cofree.tailF . Recursive.project <$> children of
+        case Cofree.tailF . Recursive.project . TermLike.eliminateSimplified <$> children of
             [BuiltinF a] -> do
                 -- Apply the operator to a domain value
                 let r = op (get a)
@@ -617,7 +617,7 @@ binaryOperator
         -> [TermLike variable]
         -> m (AttemptedAxiom variable)
     binaryOperator0 _ resultSort children =
-        case Cofree.tailF . Recursive.project <$> children of
+        case Cofree.tailF . Recursive.project . TermLike.eliminateSimplified <$> children of
             [BuiltinF a, BuiltinF b] -> do
                 -- Apply the operator to two domain values
                 let r = op (get a) (get b)
@@ -667,7 +667,7 @@ ternaryOperator
         -> [TermLike variable]
         -> m (AttemptedAxiom variable)
     ternaryOperator0 _ resultSort children =
-        case Cofree.tailF . Recursive.project <$> children of
+        case Cofree.tailF . Recursive.project . TermLike.eliminateSimplified <$> children of
             [ BuiltinF a, BuiltinF b, BuiltinF c ] -> do
                 -- Apply the operator to three domain values
                 let r = op (get a) (get b) (get c)

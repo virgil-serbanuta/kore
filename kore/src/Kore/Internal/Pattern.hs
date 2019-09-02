@@ -13,6 +13,7 @@ module Kore.Internal.Pattern
     , bottomOf
     , isBottom
     , isTop
+    , eliminateSimplified
     , Kore.Internal.Pattern.mapVariables
     , splitTerm
     , toTermLike
@@ -39,7 +40,10 @@ import           Kore.Internal.Conditional
 import qualified Kore.Internal.Conditional as Conditional
 import           Kore.Internal.Predicate
                  ( Predicate )
-import           Kore.Internal.TermLike as TermLike
+import           Kore.Internal.TermLike
+                 ( ElementVariable, Sort, SortedVariable, TermLike, mkAnd,
+                 mkBottom, mkBottom_, mkTop, mkTop_, termLikeSort )
+import qualified Kore.Internal.TermLike as TermLike
 import qualified Kore.Predicate.Predicate as Syntax
                  ( Predicate )
 import qualified Kore.Predicate.Predicate as Syntax.Predicate
@@ -99,6 +103,21 @@ mapVariables
         , predicate = Syntax.Predicate.mapVariables variableMapper predicate
         , substitution =
             Substitution.mapVariables variableMapper substitution
+        }
+
+{-|'eliminateSimplified' replaces all SimplifiedF terms with their children
+in an Pattern.
+-}
+eliminateSimplified
+    :: Ord variable
+    => Pattern variable
+    -> Pattern variable
+eliminateSimplified
+    Conditional { term, predicate, substitution }
+  = Conditional
+        { term = TermLike.eliminateSimplified term
+        , predicate = Syntax.Predicate.eliminateSimplified predicate
+        , substitution = Substitution.eliminateSimplified substitution
         }
 
 {- | Convert an 'Pattern' to an ordinary 'TermLike'.

@@ -295,6 +295,14 @@ evaluateSortInjection ap
             resultApp = apHeadNew grandChildren
         in
             assert (toSort' == fromSort) resultApp
+    Simplified_ (App_ apHeadChild grandChildren)
+      | Symbol.isSortInjection apHeadChild ->
+        let
+            [fromSort', toSort'] = symbolParams apHeadChild
+            apHeadNew = updateSortInjectionSource apHead fromSort'
+            resultApp = apHeadNew grandChildren
+        in
+            assert (toSort' == fromSort) resultApp
     _ -> ap
   | otherwise = ap
   where

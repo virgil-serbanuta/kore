@@ -12,6 +12,7 @@ module Kore.Internal.OrPredicate
     , isFalse
     , isTrue
     , toPredicate
+    , eliminateSimplified
     ) where
 
 import qualified Data.Foldable as Foldable
@@ -22,7 +23,8 @@ import qualified Kore.Internal.MultiOr as MultiOr
 import           Kore.Internal.Predicate
                  ( Predicate )
 import qualified Kore.Internal.Predicate as Predicate
-import           Kore.Internal.TermLike
+import           Kore.Internal.TermLike hiding
+                 ( eliminateSimplified )
 import qualified Kore.Predicate.Predicate as Syntax
                  ( Predicate )
 import qualified Kore.Predicate.Predicate as Syntax.Predicate
@@ -91,3 +93,12 @@ toPredicate
     => MultiOr (Syntax.Predicate variable) -> Syntax.Predicate variable
 toPredicate multiOr =
     Syntax.Predicate.makeMultipleOrPredicate (MultiOr.extractPatterns multiOr)
+
+{-|'eliminateSimplified' replaces all SimplifiedF terms with their children
+in an OrPredicate.
+-}
+eliminateSimplified
+    :: Ord variable
+    => OrPredicate variable
+    -> OrPredicate variable
+eliminateSimplified = fmap Predicate.eliminateSimplified

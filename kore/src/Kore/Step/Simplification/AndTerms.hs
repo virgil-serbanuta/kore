@@ -54,6 +54,7 @@ import qualified Kore.Internal.Pattern as Pattern
 import           Kore.Internal.Predicate as Predicate
 import qualified Kore.Internal.Symbol as Symbol
 import           Kore.Internal.TermLike
+import qualified Kore.Internal.TermLike as TermLike
 import qualified Kore.Logger as Logger
 import           Kore.Predicate.Predicate
                  ( pattern PredicateTrue, makeEqualsPredicate,
@@ -84,6 +85,8 @@ import           Kore.Variables.UnifiedVariable
 import {-# SOURCE #-} qualified Kore.Step.Simplification.Ceil as Ceil
                  ( makeEvaluateTerm )
 
+--import Debug.Trace
+
 data SimplificationTarget = AndT | EqualsT | BothT
 
 {- | Simplify an equality relation of two patterns.
@@ -109,10 +112,11 @@ termEquals
     -> TermLike variable
     -> MaybeT simplifier (OrPredicate variable)
 termEquals first second = MaybeT $ do
+    --traceM ("termEquals\n" ++ unparseToString first ++ "\nvs\n" ++ unparseToString second)
     maybeResults <- BranchT.gather $ runMaybeT $ termEqualsAnd first second
     case sequence maybeResults of
         Nothing -> return Nothing
-        Just results -> return $ Just $
+        Just results -> {-trace ("result=" ++ show (map unparseToString results)) $-} return $ Just $
             MultiOr.make (map Predicate.eraseConditionalTerm results)
 
 termEqualsAnd
@@ -228,6 +232,7 @@ termUnification =
         -> TermLike variable
         -> unifier (Pattern variable)
     termUnificationWorker pat1 pat2 = do
+        --traceM "termUnification"
         let
             maybeTermUnification :: MaybeT unifier (Pattern variable)
             maybeTermUnification =
@@ -248,8 +253,7 @@ termUnification =
 {- | Simplify the conjunction (@\\and@) of two terms.
 
 The comment for 'Kore.Step.Simplification.And.simplify' describes all the
-special cases
-handled by this.
+special cases handled by this.
 
 See also: 'termUnification'
 
@@ -270,6 +274,7 @@ termAnd
     -> BranchT simplifier (Pattern variable)
 termAnd p1 p2 =
     either (const andTerm) BranchT.scatter
+    -- =<< (Monad.Trans.lift . runUnifierT) (termAndWorker (TermLike.eliminateSimplified p1) (TermLike.eliminateSimplified p2))
     =<< (Monad.Trans.lift . runUnifierT) (termAndWorker p1 p2)
   where
     andTerm = return $ Pattern.fromTermLike (mkAnd p1 p2)
@@ -281,6 +286,7 @@ termAnd p1 p2 =
         -> TermLike variable
         -> unifier (Pattern variable)
     termAndWorker first second = do
+        --traceM "termAnd"
         let maybeTermAnd' =
                 maybeTermAnd
                     createLiftedPredicatesAndSubstitutionsMerger
@@ -486,9 +492,30 @@ maybeTransformTerm
     topTransformers
     predicateMerger
     childTransformers
+    (Simplified_ first)
+    (Simplified_ second)
+  = maybeTransformTerm topTransformers predicateMerger childTransformers first second
+maybeTransformTerm
+    topTransformers
+    predicateMerger
+    childTransformers
+    (Simplified_ first)
+    second
+  = maybeTransformTerm topTransformers predicateMerger childTransformers first second
+maybeTransformTerm
+    topTransformers
+    predicateMerger
+    childTransformers
+    first
+    (Simplified_ second)
+  = maybeTransformTerm topTransformers predicateMerger childTransformers first second
+maybeTransformTerm
+    topTransformers
+    predicateMerger
+    childTransformers
     first
     second
-  = do
+  =
     Foldable.asum
         (map
             (\f -> f
@@ -508,14 +535,14 @@ boolAnd
     -> TermLike variable
     -> MaybeT unifier (Pattern variable)
 boolAnd first second
-  | isBottom first  = do
+  | isBottom (TermLike.eliminateSimplified first)  = do
       explainBoolAndBottom first second
       return (Pattern.fromTermLike first)
-  | isTop first     = return (Pattern.fromTermLike second)
-  | isBottom second = do
+  | isTop (TermLike.eliminateSimplified first)     = return (Pattern.fromTermLike second)
+  | isBottom (TermLike.eliminateSimplified second) = do
       explainBoolAndBottom first second
       return (Pattern.fromTermLike second)
-  | isTop second    = return (Pattern.fromTermLike first)
+  | isTop (TermLike.eliminateSimplified second)    = return (Pattern.fromTermLike first)
   | otherwise       = empty
 
 explainBoolAndBottom
@@ -536,7 +563,7 @@ equalAndEquals
     -> TermLike variable
     -> MaybeT unifier (Pattern variable)
 equalAndEquals first second
-  | first == second =
+  | (TermLike.eliminateSimplified first) == (TermLike.eliminateSimplified second) =
     return (Pattern.fromTermLike first)
 equalAndEquals _ _ = empty
 
@@ -713,13 +740,13 @@ sortInjectionAndEqualsAssumesDifferentHeads
     -> MaybeT unifier (Pattern variable)
 sortInjectionAndEqualsAssumesDifferentHeads termMerger first second = do
     tools <- Simplifier.askMetadataTools
-    case simplifySortInjections tools first second of
+    case simplifySortInjections tools first' second' of
         Nothing ->
             Monad.Trans.lift
                 $ throwUnificationError
                 $ unsupportedPatterns
                     "Unimplemented sort injection unification"
-                    first
+                    first'
                     second
         Just NotInjection -> empty
         Just NotMatching -> Monad.Trans.lift $ do
@@ -727,8 +754,8 @@ sortInjectionAndEqualsAssumesDifferentHeads termMerger first second = do
                 "Unification of sort injections failed due to mismatch. \
                 \This can happen either because one of them is a constructor \
                 \or because their sort intersection is empty."
-                first
-                second
+                first'
+                second'
             empty
         Just (Matching sortInjectionMatch) -> Monad.Trans.lift $ do
             merged <- termMerger firstChild secondChild
@@ -741,13 +768,15 @@ sortInjectionAndEqualsAssumesDifferentHeads termMerger first second = do
                         first
                         second
                     empty
-                else do
+                else
                     return $ applyInjection injectionHead <$> merged
           where
             SortInjectionMatch { firstChild, secondChild } = sortInjectionMatch
             SortInjectionMatch { injectionHead } = sortInjectionMatch
   where
     applyInjection injectionHead term = mkApplySymbol injectionHead [term]
+    first' = TermLike.eliminateSimplified first
+    second' = TermLike.eliminateSimplified second
 
 data SortInjectionMatch variable =
     SortInjectionMatch
@@ -777,7 +806,8 @@ simplifySortInjections
             { symbolConstructor = firstConstructor
             , symbolParams = [firstOrigin, firstDestination]
             }
-        [firstChild])
+        [firstChild]
+    )
     (App_
         secondHead@Symbol
             { symbolConstructor = secondConstructor
@@ -897,7 +927,7 @@ constructorSortInjectionAndEquals
             (Symbol.isSortInjection firstHead && Symbol.isConstructor   secondHead)
 constructorSortInjectionAndEquals _ _ = empty
 
-{- | Unifcation or equality for a domain value pattern vs a constructor
+{- | Unification or equality for a domain value pattern vs a constructor
 application.
 
 This unification case throws an error because domain values may not occur in a

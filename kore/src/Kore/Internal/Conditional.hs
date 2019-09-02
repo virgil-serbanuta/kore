@@ -211,6 +211,49 @@ instance ( SortedVariable variable
                 sort
                 $ Predicate.fromSubstitution substitution
 
+instance ( SortedVariable variable
+         , Ord variable
+         , Show variable
+         , Unparse variable
+         ) => Unparse (Conditional variable ()) where
+    unparse Conditional { term = (), predicate, substitution } =
+        unparseAnd
+            (below
+                "/* predicate: */"
+                (unparse termLikePredicate)
+            )
+            (below
+                "/* substitution: */"
+                (unparse termLikeSubstitution)
+            )
+      where
+        unparseAnd first second =
+            "\\and" <> arguments' [first, second]
+        below first second =
+            (Pretty.align . Pretty.vsep) [first, second]
+        termLikePredicate = predicate
+        termLikeSubstitution =
+            Predicate.fromSubstitution substitution
+
+    unparse2 Conditional { term = (), predicate, substitution } =
+        unparseAnd2
+            (below
+                "/* predicate: */"
+                (unparse2 termLikePredicate)
+            )
+            (below
+                "/* substitution: */"
+                (unparse2 termLikeSubstitution)
+            )
+      where
+        unparseAnd2 first second =
+            "\\and2" <> arguments' [first, second]
+        below first second =
+            (Pretty.align . Pretty.vsep) [first, second]
+        termLikePredicate = predicate
+        termLikeSubstitution =
+            Predicate.fromSubstitution substitution
+
 {- | Forget the 'term', keeping only the attached conditions.
  -}
 withoutTerm :: Conditional variable term -> Conditional variable ()
