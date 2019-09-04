@@ -209,6 +209,7 @@ verifyClaimStep
     :: forall claim m
     .  MonadSimplify m
     => Claim claim
+    => Show claim
     => claim
     -- ^ claim that is being proven
     -> [claim]
@@ -253,6 +254,7 @@ transitionRule'
     :: forall claim m
     .  MonadSimplify m
     => Claim claim
+    => Show claim
     => Pattern Variable
     -> Prim (Rule claim)
     -> CommonProofState

@@ -67,6 +67,7 @@ runRepl
     => MonadIO m
     => MonadCatch m
     => Claim claim
+    => Show claim
     => axiom ~ Rule claim
     => [axiom]
     -- ^ list of axioms to used in the proof
@@ -95,7 +96,7 @@ runRepl axioms' claims' logger replScript replMode outputFile = do
 
   where
 
-    runReplCommand :: ReplCommand -> ReplState claim -> m ()
+    runReplCommand :: Show claim => ReplCommand -> ReplState claim -> m ()
     runReplCommand cmd st =
         void
             $ flip evalStateT st
@@ -130,7 +131,7 @@ runRepl axioms' claims' logger replScript replMode outputFile = do
             , logging    = (Logger.Debug, NoLogging)
             }
 
-    config :: Config claim m
+    config :: Show claim => Config claim m
     config =
         Config
             { stepper    = stepper0
@@ -195,7 +196,7 @@ runRepl axioms' claims' logger replScript replMode outputFile = do
     firstClaimExecutionGraph = emptyExecutionGraph firstClaim
 
     stepper0
-        :: claim
+        :: Show claim => claim
         -> [claim]
         -> [axiom]
         -> ExecutionGraph axiom
