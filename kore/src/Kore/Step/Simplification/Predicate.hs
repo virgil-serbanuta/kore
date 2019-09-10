@@ -23,7 +23,7 @@ import           Kore.Internal.Pattern
                  ( Conditional (..), Predicate )
 import qualified Kore.Internal.Pattern as Pattern
 import qualified Kore.Predicate.Predicate as Syntax
-                 ( Predicate, unwrapPredicate )
+                 ( Predicate, normalizeAndPredicate, unwrapPredicate )
 import qualified Kore.Predicate.Predicate as Syntax.Predicate
                  ( substitute )
 import           Kore.Step.Simplification.Data
@@ -63,9 +63,10 @@ simplify
     -> BranchT simplifier (Predicate variable)
 simplify
     times
-    initialValue@Conditional { predicate, substitution }
+    initialValue@Conditional { predicate = predicate', substitution }
   = do
-    let substitution' = Substitution.toMap substitution
+    let predicate = Syntax.normalizeAndPredicate predicate'
+        substitution' = Substitution.toMap substitution
         substitutedPredicate =
             Syntax.Predicate.substitute substitution' predicate
     -- TODO(Vladimir): This is an ugly hack that fixes EVM execution. Should
@@ -73,7 +74,7 @@ simplify
     -- This was needed because, when we need to simplify 'requires' clauses,
     -- this needs to run more than once.
     if substitutedPredicate == predicate && times > 1
-        then return initialValue
+        then return initialValue {Conditional.predicate = predicate}
         else localPredicateSimplifier $ do
             simplified <- simplifyPartial substitutedPredicate
 
@@ -143,7 +144,10 @@ simplifyPartial
     predicate
   = do
     patternOr <-
-        Monad.Trans.lift $ simplifyTerm $ Syntax.unwrapPredicate predicate
+        Monad.Trans.lift
+        $ simplifyTerm
+        $ Syntax.unwrapPredicate
+        $ Syntax.normalizeAndPredicate predicate
     -- Despite using Monad.Trans.lift above, we do not need to explicitly check
     -- for \bottom because patternOr is an OrPattern.
     scatter (eraseTerm <$> patternOr)
