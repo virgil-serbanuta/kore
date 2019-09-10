@@ -33,6 +33,7 @@ module Kore.Predicate.Predicate
     , makeOrPredicate
     , makeMultipleOrPredicate
     , makeTruePredicate
+    , normalizeAndPredicate
     , freeVariables
     , isFreeOf
     , Kore.Predicate.Predicate.freeElementVariables
@@ -193,9 +194,18 @@ makeMultipleAndPredicate
     => [Predicate variable]
     -> Predicate variable
 makeMultipleAndPredicate =
-    foldl' makeAndPredicate makeTruePredicate . nub
-    -- 'and' is idempotent so we eliminate duplicates
-    -- TODO: This is O(n^2), consider doing something better.
+    makeMultipleAndPredicateWorker . Set.toList . Set.fromList
+  where
+    makeMultipleAndPredicateWorker :: [Predicate variable] -> Predicate variable
+    makeMultipleAndPredicateWorker [] = makeTruePredicate
+    makeMultipleAndPredicateWorker [p] = p
+    makeMultipleAndPredicateWorker predicates =
+        makeMultipleAndPredicateWorker (andPairs predicates)
+
+    andPairs :: [Predicate variable] -> [Predicate variable]
+    andPairs [] = []
+    andPairs [a] = [a]
+    andPairs (a : b : predicates) = makeAndPredicate a b : andPairs predicates
 
 {-| 'makeMultipleOrPredicate' combines a list of Predicates with 'or',
 doing some simplification.
@@ -225,6 +235,23 @@ makeAndPredicate p@(GenericPredicate first) (GenericPredicate second)
   | first == second = p
   | otherwise =
     GenericPredicate (TermLike.mkAnd first second)
+
+normalizeAndPredicate
+    :: InternalVariable variable
+    => Predicate variable
+    -> Predicate variable
+normalizeAndPredicate =
+    makeMultipleAndPredicate . extractPieces []
+  where
+    extractPieces
+        :: [Predicate variable]
+        -> Predicate variable
+        -> [Predicate variable]
+    extractPieces pieces (GenericPredicate (And_ _sort first second)) =
+        extractPieces
+            (extractPieces pieces (GenericPredicate second))
+            (GenericPredicate first)
+    extractPieces pieces p = p : pieces
 
 {-| 'makeOrPredicate' combines two Predicates with an 'or', doing
 some simplification.

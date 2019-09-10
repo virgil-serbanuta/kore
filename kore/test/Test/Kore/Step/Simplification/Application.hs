@@ -177,8 +177,8 @@ test_applicationSimplification =
                             , predicate =
                                 makeAndPredicate
                                     (makeAndPredicate
-                                        (makeEqualsPredicate fOfA gOfA)
                                         (makeEqualsPredicate fOfA fOfB)
+                                        (makeEqualsPredicate fOfA gOfA)
                                     )
                                     (makeEqualsPredicate gOfA gOfB)
                             , substitution =

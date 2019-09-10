@@ -148,18 +148,24 @@ test_equalsSimplification_Or_Pattern =
                     [ Conditional
                         { term = mkTop_
                         , predicate =
-                            makeMultipleAndPredicate
-                                [ makeCeilPredicate Mock.cf
-                                , makeOrPredicate
+                            makeAndPredicate
+                                (makeAndPredicate
+                                    (makeAndPredicate
+                                        (makeCeilPredicate Mock.cf)
+                                        (makeImpliesPredicate
+                                            (makeCeilPredicate Mock.cg)
+                                            (makeEqualsPredicate Mock.cf Mock.cg)
+                                        )
+                                    )
+                                    (makeImpliesPredicate
+                                        (makeCeilPredicate Mock.ch)
+                                        (makeEqualsPredicate Mock.cf Mock.ch)
+                                    )
+                                )
+                                (makeOrPredicate
                                     (makeCeilPredicate Mock.cg)
                                     (makeCeilPredicate Mock.ch)
-                                , makeImpliesPredicate
-                                    (makeCeilPredicate Mock.cg)
-                                    (makeEqualsPredicate Mock.cf Mock.cg)
-                                , makeImpliesPredicate
-                                    (makeCeilPredicate Mock.ch)
-                                    (makeEqualsPredicate Mock.cf Mock.ch)
-                                ]
+                                )
                         , substitution = mempty
                         }
                     ,  Conditional
@@ -219,32 +225,42 @@ test_equalsSimplification_Or_Pattern =
                     [ Conditional
                         { term = mkTop_
                         , predicate =
-                            makeMultipleAndPredicate
-                                [ definedF
-                                , definedG
-                                , makeImpliesPredicate
-                                    definedG
-                                    (makeEqualsPredicate Mock.cf Mock.cg)
-                                , makeImpliesPredicate
+                            makeAndPredicate
+                                (makeAndPredicate
+                                    (makeAndPredicate
+                                        definedF
+                                        definedG
+                                    )
+                                    (makeImpliesPredicate
+                                        definedG
+                                        (makeEqualsPredicate Mock.cf Mock.cg)
+                                    )
+                                )
+                                (makeImpliesPredicate
                                     definedH
                                     (makeEqualsPredicate Mock.cf Mock.ch)
-                                ]
+                                )
                         , substitution = Substitution.unsafeWrap
                             [(ElemVar Mock.x, Mock.a)]
                         }
                     , Conditional
                         { term = mkTop_
                         , predicate =
-                            makeMultipleAndPredicate
-                                [ definedF
-                                , definedH
-                                , makeImpliesPredicate
-                                    definedGWithSubstitution
-                                    (makeEqualsPredicate Mock.cf Mock.cg)
-                                , makeImpliesPredicate
+                            makeAndPredicate
+                                (makeAndPredicate
+                                    (makeAndPredicate
+                                        definedF
+                                        definedH
+                                    )
+                                    (makeImpliesPredicate
+                                        definedGWithSubstitution
+                                        (makeEqualsPredicate Mock.cf Mock.cg)
+                                    )
+                                )
+                                (makeImpliesPredicate
                                     definedH
                                     (makeEqualsPredicate Mock.cf Mock.ch)
-                                ]
+                                )
                         , substitution = mempty
                         }
                     , Conditional
@@ -356,14 +372,14 @@ test_equalsSimplification_Pattern =
                                     (makeAndPredicate
                                         (makeAndPredicate
                                             (makeAndPredicate
-                                                (makeEqualsPredicate hOfA hOfB)
                                                 (makeCeilPredicate hOfA)
+                                                (makeCeilPredicate hOfB)
                                             )
                                             (makeEqualsPredicate fOfA fOfB)
                                         )
-                                        (makeCeilPredicate hOfB)
+                                        (makeEqualsPredicate gOfA gOfB)
                                     )
-                                    (makeEqualsPredicate gOfA gOfB)
+                                    (makeEqualsPredicate hOfA hOfB)
                                 )
                                 (makeAndPredicate
                                     (makeNotPredicate
