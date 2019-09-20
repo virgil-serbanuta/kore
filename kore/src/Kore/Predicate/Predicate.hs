@@ -190,7 +190,7 @@ isFalse = isBottom
 doing some simplification.
 -}
 makeMultipleAndPredicate
-    :: InternalVariable variable
+    :: forall variable . InternalVariable variable
     => [Predicate variable]
     -> Predicate variable
 makeMultipleAndPredicate =
