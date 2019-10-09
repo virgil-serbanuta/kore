@@ -49,7 +49,11 @@ import qualified Kore.Attribute.Sort.Element as Attribute
 import qualified Kore.Attribute.Sort.Unit as Attribute
 import qualified Kore.Attribute.Symbol as Attribute
 import qualified Kore.Builtin.Bool as Builtin.Bool
+import qualified Kore.Builtin.Int as Int
 import qualified Kore.Builtin.Int as Builtin.Int
+import qualified Kore.Builtin.List as List
+import qualified Kore.Builtin.Map as Map
+import qualified Kore.Builtin.Set as Set
 import qualified Kore.Builtin.String as Builtin.String
 import qualified Kore.Domain.Builtin as Domain
 import Kore.IndexedModule.MetadataTools
@@ -65,6 +69,12 @@ import Kore.Internal.TermLike
     )
 import qualified Kore.Internal.TermLike as Internal
 import Kore.Sort
+import Kore.Step.Axiom.EvaluationStrategy
+    ( builtinEvaluation
+    )
+import qualified Kore.Step.Axiom.Identifier as AxiomIdentifier
+    ( AxiomIdentifier (..)
+    )
 import qualified Kore.Step.Function.Memo as Memo
 import qualified Kore.Step.Simplification.Condition as Simplifier.Condition
 import Kore.Step.Simplification.Data
@@ -72,6 +82,7 @@ import Kore.Step.Simplification.Data
     , MonadSimplify
     )
 import qualified Kore.Step.Simplification.Data as SimplificationData.DoNotUse
+import qualified Kore.Step.Simplification.Predicate as Simplifier.Predicate
 import qualified Kore.Step.Simplification.Simplifier as Simplifier
 import Kore.Step.Simplification.Simplify
     ( BuiltinAndAxiomSimplifierMap
