@@ -21,7 +21,11 @@ import Kore.Logger
     ( LogMessage
     , WithLog
     )
-import Kore.Step.Simplification.Simplify as Simplifier
+import Kore.Step.Simplification.Simplify
+    ( MonadSimplify
+    , SimplifierVariable
+    , simplifyCondition
+    )
 import Kore.Step.Substitution
     ( PredicateMerger (PredicateMerger)
     )

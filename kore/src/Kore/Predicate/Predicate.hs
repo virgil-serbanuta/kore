@@ -77,6 +77,9 @@ import GHC.Stack
     ( HasCallStack
     )
 
+import qualified Kore.Attribute.Pattern as Attribute
+    ( simplified
+    )
 import Kore.Attribute.Pattern.FreeVariables
 import Kore.Debug
 import Kore.Error
@@ -457,9 +460,10 @@ makePredicate = Recursive.elgot makePredicateBottomUp makePredicateTopDown
             (TermLike variable)
             (Either (Error e) (Predicate variable))
         -> Either (Error e) (Predicate variable)
-    makePredicateBottomUp (_ :< patE) = do
-        pat <- sequence patE
-        case pat of
+    makePredicateBottomUp termE@(attrs :< patE) = do
+        term <- sequence termE
+        let (_ :< pat) = term
+        predicate <- case pat of
             TopF _ -> return makeTruePredicate
             BottomF _ -> return makeFalsePredicate
             AndF p -> return $ makeAndPredicate (andFirst p) (andSecond p)
@@ -474,6 +478,10 @@ makePredicate = Recursive.elgot makePredicateBottomUp makePredicateTopDown
                 makeForallPredicate (forallVariable p) (forallChild p)
             p -> koreFail
                 ("Cannot translate to predicate: " ++ show p)
+        if Attribute.simplified attrs
+            && unwrapPredicate predicate == fmap unwrapPredicate term
+            then return (markSimplified predicate)
+            else return predicate
     makePredicateTopDown
         :: TermLike variable
         -> Either
