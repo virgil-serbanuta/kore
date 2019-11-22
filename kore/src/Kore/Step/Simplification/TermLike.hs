@@ -155,6 +155,8 @@ import Kore.Variables.UnifiedVariable
     ( UnifiedVariable (..)
     )
 
+--import Debug.Trace
+
 -- TODO(virgil): Add a Simplifiable class and make all pattern types
 -- instances of that.
 
@@ -252,6 +254,8 @@ simplifyInternal term predicate = do
         | otherwise
         = assertTermNotPredicate $ tracer termLike $ do
             unfixedTermOr <- descendAndSimplify termLike
+            --traceM (unparseToString termLike)
+            --traceM ("------------\n" ++ unlines (unparseToString <$> OrPattern.toPatterns unfixedTermOr))
             let termOr = fixOrPatternSorts (termLikeSort termLike) unfixedTermOr
             returnIfSimplifiedOrContinue
                 termLike
@@ -455,7 +459,7 @@ simplifyInternal term predicate = do
       | otherwise = binder
 
 fixOrPatternSorts
-    :: InternalVariable variable
+    :: (GHC.HasCallStack, InternalVariable variable)
     => Sort -> OrPattern variable -> OrPattern variable
 fixOrPatternSorts sort =
     OrPattern.fromPatterns
@@ -463,7 +467,7 @@ fixOrPatternSorts sort =
     . OrPattern.toPatterns
 
 fixPatternSorts
-    :: InternalVariable variable
+    :: (GHC.HasCallStack, InternalVariable variable)
     => Sort -> Pattern variable -> Pattern variable
 fixPatternSorts
     sort
@@ -471,6 +475,8 @@ fixPatternSorts
   =
     Conditional
         { term = TermLike.forceSort sort term
-        , predicate = TermLike.forceSort sort <$> predicate
+        -- Need to override this since a 'ceil' (say) over a predicate is that
+        -- predicate with a different sort.
+        , predicate = TermLike.fullyOverrideSort sort <$> predicate
         , substitution
         }

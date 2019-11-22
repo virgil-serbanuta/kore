@@ -37,8 +37,8 @@ import Kore.Internal.Pattern
     )
 import qualified Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
-    ( makeEqualsPredicate
-    , makeTruePredicate
+    ( makeEqualsPredicate_
+    , makeTruePredicate_
     )
 import Kore.Internal.Predicate
     ( Predicate
@@ -223,7 +223,7 @@ actualTwoAxioms =
     runStep
         Conditional
             { term = mkElemVar (v1 Mock.testSort)
-            , predicate = makeTruePredicate
+            , predicate = makeTruePredicate_
             , substitution = mempty
             }
         [ rewriteIdentity
@@ -237,7 +237,7 @@ initialFailSimple =
             metaSigma
                 (metaG (mkElemVar $ a1 Mock.testSort))
                 (metaF (mkElemVar $ b1 Mock.testSort))
-        , predicate = makeTruePredicate
+        , predicate = makeTruePredicate_
         , substitution = mempty
         }
 
@@ -263,7 +263,7 @@ initialFailCycle =
             metaSigma
                 (mkElemVar $ a1 Mock.testSort)
                 (mkElemVar $ a1 Mock.testSort)
-        , predicate = makeTruePredicate
+        , predicate = makeTruePredicate_
         , substitution = mempty
         }
 
@@ -286,7 +286,7 @@ initialIdentity :: Pattern Variable
 initialIdentity =
     Conditional
         { term = mkElemVar (v1 Mock.testSort)
-        , predicate = makeTruePredicate
+        , predicate = makeTruePredicate_
         , substitution = mempty
         }
 
@@ -338,7 +338,7 @@ smtTerm term = Mock.functionalConstr10 term
 smtSyntaxPredicate
     :: TermLike Variable -> PredicateState -> Predicate Variable
 smtSyntaxPredicate term predicateState =
-    makeEqualsPredicate
+    makeEqualsPredicate_
         (Mock.lessInt
             (Mock.fTestInt term)
             (Mock.builtinInt 0)
@@ -369,7 +369,7 @@ test_SMT =
                 { left = smtTerm (TermLike.mkElemVar Mock.x)
                 , antiLeft = Nothing
                 , right = Mock.a
-                , ensures = makeTruePredicate
+                , ensures = makeTruePredicate_
                 , requires =
                     smtSyntaxPredicate (TermLike.mkElemVar Mock.x) PredicatePositive
                 , attributes = def
@@ -378,7 +378,7 @@ test_SMT =
                 { left = smtTerm (TermLike.mkElemVar Mock.x)
                 , antiLeft = Nothing
                 , right = Mock.c
-                , ensures = makeTruePredicate
+                , ensures = makeTruePredicate_
                 , requires =
                     smtSyntaxPredicate (TermLike.mkElemVar Mock.x) PredicateNegated
                 , attributes = def
@@ -398,7 +398,7 @@ test_SMT =
         [ _actual1 ] <- runStepMockEnv
             Conditional
                 { term = Mock.functionalConstr10 Mock.b
-                , predicate = makeEqualsPredicate
+                , predicate = makeEqualsPredicate_
                     (Mock.lessInt
                         (Mock.fTestInt Mock.b)
                         (Mock.builtinInt 0)
@@ -410,9 +410,9 @@ test_SMT =
                 { left = Mock.functionalConstr10 (TermLike.mkElemVar Mock.x)
                 , antiLeft = Nothing
                 , right = Mock.a
-                , ensures = makeTruePredicate
+                , ensures = makeTruePredicate_
                 , requires =
-                    makeEqualsPredicate
+                    makeEqualsPredicate_
                         (Mock.lessInt
                             (Mock.fTestInt (TermLike.mkElemVar Mock.x))
                             (Mock.builtinInt 0)
@@ -425,7 +425,7 @@ test_SMT =
             [ Conditional
                 { term = Mock.a
                 , predicate =
-                    makeEqualsPredicate
+                    makeEqualsPredicate_
                         (Mock.lessInt
                             (Mock.fTestInt Mock.b)
                             (Mock.builtinInt 0)
@@ -453,7 +453,7 @@ actualUnificationError =
                 metaSigma
                     (mkElemVar $ a1 Mock.testSort)
                     (metaI (mkElemVar $ b1 Mock.testSort))
-            , predicate = makeTruePredicate
+            , predicate = makeTruePredicate_
             , substitution = mempty
             }
         [axiomMetaSigmaId]

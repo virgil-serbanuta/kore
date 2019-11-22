@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Test.Kore.Step.Simplification.AndTerms
-    ( test_andTermsSimplification
+    ( test_zzzandTermsSimplification
     , test_equalsTermsSimplification
     , test_functionAnd
     ) where
@@ -36,8 +36,11 @@ import Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
     ( makeAndPredicate
     , makeCeilPredicate
+    , makeCeilPredicate_
     , makeEqualsPredicate
+    , makeEqualsPredicate_
     , makeTruePredicate
+    , makeTruePredicate_
     )
 import Kore.Internal.TermLike as TermLike
 import qualified Kore.Step.Axiom.Identifier as AxiomIdentifier
@@ -76,26 +79,16 @@ import qualified Test.Kore.Step.MockSymbols as Mock
 import Test.Kore.Step.Simplification
 import Test.Tasty.HUnit.Ext
 
-test_andTermsSimplification :: [TestTree]
-test_andTermsSimplification =
+test_zzzandTermsSimplification :: [TestTree]
+test_zzzandTermsSimplification =
     [ testGroup "Predicates"
         [ testCase "\\and{s}(f{}(a), \\top{s}())" $ do
-            let expected =
-                    Conditional
-                        { term = fOfA
-                        , predicate = makeTruePredicate
-                        , substitution = mempty
-                        }
+            let expected = Pattern.fromTermLike fOfA
             actual <- simplifyUnify fOfA mkTop_
             assertEqual "" ([expected], Just [expected]) actual
 
         , testCase "\\and{s}(\\top{s}(), f{}(a))" $ do
-            let expected =
-                    Conditional
-                        { term = fOfA
-                        , predicate = makeTruePredicate
-                        , substitution = mempty
-                        }
+            let expected = Pattern.fromTermLike fOfA
             actual <- simplifyUnify mkTop_ fOfA
             assertEqual "" ([expected], Just [expected]) actual
 
@@ -117,12 +110,7 @@ test_andTermsSimplification =
         ]
 
     , testCase "equal patterns and" $ do
-        let expect =
-                Conditional
-                    { term = fOfA
-                    , predicate = makeTruePredicate
-                    , substitution = mempty
-                    }
+        let expect = Pattern.fromTermLike fOfA
         actual <- simplifyUnify fOfA fOfA
         assertEqual "" ([expect], Just [expect]) actual
 
@@ -131,7 +119,7 @@ test_andTermsSimplification =
             let expect =
                     Conditional
                         { term = fOfA
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution =
                             Substitution.unsafeWrap [(ElemVar Mock.x, fOfA)]
                         }
@@ -142,7 +130,7 @@ test_andTermsSimplification =
             let expect =
                     Conditional
                         { term = fOfA
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution =
                             Substitution.unsafeWrap [(ElemVar Mock.x, fOfA)]
                         }
@@ -155,7 +143,9 @@ test_andTermsSimplification =
             let expect =
                     Conditional
                         { term = Mock.injective10 fOfA
-                        , predicate = makeEqualsPredicate fOfA gOfA
+                        , predicate = makeEqualsPredicate Mock.testSort
+                            fOfA
+                            gOfA
                         , substitution = mempty
                         }
             actual <-
@@ -163,26 +153,18 @@ test_andTermsSimplification =
                     (Mock.injective10 fOfA) (Mock.injective10 gOfA)
             assertEqual "" ([expect], Just [expect]) actual
         , testCase "same head, same child" $ do
-            let expected =
-                    Conditional
-                        { term = Mock.injective10 fOfA
-                        , predicate = makeTruePredicate
-                        , substitution = mempty
-                        }
+            let expected = Pattern.fromTermLike (Mock.injective10 fOfA)
             actual <-
                 simplifyUnify
                     (Mock.injective10 fOfA) (Mock.injective10 fOfA)
             assertEqual "" ([expected], Just [expected]) actual
         , testCase "different head" $ do
             let expect =
-                    (   [ Conditional
-                            { term =
-                                mkAnd
-                                    (Mock.injective10 fOfA)
-                                    (Mock.injective11 gOfA)
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                    (   [ Pattern.fromTermLike
+                            (mkAnd
+                                (Mock.injective10 fOfA)
+                                (Mock.injective11 gOfA)
+                            )
                         ]
                     , Nothing
                     )
@@ -197,8 +179,9 @@ test_andTermsSimplification =
             let expect =
                     Conditional
                         { term = Mock.sortInjection10 Mock.cfSort0
-                        , predicate =
-                            makeEqualsPredicate Mock.cfSort0 Mock.cgSort0
+                        , predicate = makeEqualsPredicate Mock.testSort
+                            Mock.cfSort0
+                            Mock.cgSort0
                         , substitution = mempty
                         }
             actual <-
@@ -208,12 +191,7 @@ test_andTermsSimplification =
             assertEqual "" ([expect], Just [expect]) actual
         , testCase "same head, same child" $ do
             let expect =
-                    Conditional
-                        { term =
-                            Mock.sortInjection10 Mock.cfSort0
-                        , predicate = makeTruePredicate
-                        , substitution = mempty
-                        }
+                    Pattern.fromTermLike (Mock.sortInjection10 Mock.cfSort0)
             actual <-
                 simplifyUnify
                     (Mock.sortInjection10 Mock.cfSort0)
@@ -228,18 +206,15 @@ test_andTermsSimplification =
             assertEqual "" expect actual
         , testCase "different head, subsort first" $ do
             let expect =
-                    (   [ Conditional
-                            { term =
-                                Mock.sortInjectionSubToTop
-                                    (mkAnd
-                                        (Mock.sortInjectionSubSubToSub
-                                            Mock.plain00SubSubsort
-                                        )
-                                        Mock.plain00Subsort
+                    (   [ Pattern.fromTermLike
+                            (Mock.sortInjectionSubToTop
+                                (mkAnd
+                                    (Mock.sortInjectionSubSubToSub
+                                        Mock.plain00SubSubsort
                                     )
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                                    Mock.plain00Subsort
+                                )
+                            )
                         ]
                     , Nothing
                     )
@@ -250,18 +225,15 @@ test_andTermsSimplification =
             assertEqual "" expect actual
         , testCase "different head, subsort second" $ do
             let expect =
-                    (   [ Conditional
-                            { term =
-                                Mock.sortInjectionSubToTop
-                                    (mkAnd
-                                        Mock.plain00Subsort
-                                        (Mock.sortInjectionSubSubToSub
-                                            Mock.plain00SubSubsort
-                                        )
+                    (   [ Pattern.fromTermLike
+                            (Mock.sortInjectionSubToTop
+                                (mkAnd
+                                    Mock.plain00Subsort
+                                    (Mock.sortInjectionSubSubToSub
+                                        Mock.plain00SubSubsort
                                     )
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                                )
+                            )
                         ]
                     , Nothing
                     )
@@ -306,7 +278,10 @@ test_andTermsSimplification =
                     let
                         expected = Conditional
                             { term = Mock.constr10 Mock.cf
-                            , predicate = makeEqualsPredicate Mock.cf Mock.cg
+                            , predicate = makeEqualsPredicate
+                                Mock.testSort
+                                Mock.cf
+                                Mock.cg
                             , substitution = mempty
                             }
                     in ([expected], Just [expected])
@@ -319,11 +294,7 @@ test_andTermsSimplification =
         , testCase "same head same child" $ do
             let expect =
                     let
-                        expected = Conditional
-                            { term = Mock.constr10 Mock.cf
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                        expected = Pattern.fromTermLike (Mock.constr10 Mock.cf)
                     in ([expected], Just [expected])
             actual <-
                 simplifyUnify
@@ -352,11 +323,7 @@ test_andTermsSimplification =
         [ testCase "equal values" $ do
             let expect =
                     let
-                        expected = Conditional
-                            { term = aDomainValue
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                        expected = Pattern.fromTermLike aDomainValue
                     in ([expected], Just [expected])
             actual <- simplifyUnify aDomainValue aDomainValue
             assertEqual "" expect actual
@@ -371,11 +338,7 @@ test_andTermsSimplification =
         [ testCase "equal values" $ do
             let expect =
                     let
-                        expected = Conditional
-                            { term = mkStringLiteral "a"
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                        expected = Pattern.fromTermLike (mkStringLiteral "a")
                     in ([expected], Just [expected])
             actual <-
                 simplifyUnify
@@ -395,12 +358,7 @@ test_andTermsSimplification =
     , testGroup "function and"
         [ testCase "equal values" $ do
             let expect =
-                    let
-                        expanded = Conditional
-                            { term = fOfA
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                    let expanded = Pattern.fromTermLike fOfA
                     in ([expanded], Just [expanded])
             actual <- simplifyUnify fOfA fOfA
             assertEqual "" expect actual
@@ -410,7 +368,7 @@ test_andTermsSimplification =
                     let
                         expanded = Conditional
                             { term = fOfA
-                            , predicate = makeEqualsPredicate fOfA gOfA
+                            , predicate = makeEqualsPredicate_ fOfA gOfA
                             , substitution = mempty
                             }
                     in ([expanded], Just [expanded])
@@ -421,12 +379,7 @@ test_andTermsSimplification =
     , testGroup "unhandled cases"
         [ testCase "top level" $ do
             let expect =
-                    (   [ Conditional
-                            { term = mkAnd plain0OfA plain1OfA
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
-                        ]
+                    ( [ Pattern.fromTermLike (mkAnd plain0OfA plain1OfA) ]
                     , Nothing
                     )
             actual <- simplifyUnify plain0OfA plain1OfA
@@ -434,11 +387,8 @@ test_andTermsSimplification =
 
         , testCase "one level deep" $ do
             let expect =
-                    (   [ Conditional
-                            { term = Mock.constr10 (mkAnd plain0OfA plain1OfA)
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                    (   [ Pattern.fromTermLike
+                            (Mock.constr10 (mkAnd plain0OfA plain1OfA))
                         ]
                     , Nothing
                     )
@@ -449,13 +399,10 @@ test_andTermsSimplification =
 
         , testCase "two levels deep" $ do
             let expect =
-                    (   [ Conditional
-                            { term =
-                                Mock.constr10
-                                    (Mock.constr10 (mkAnd plain0OfA plain1OfA))
-                            , predicate = makeTruePredicate
-                            , substitution = mempty
-                            }
+                    (   [ Pattern.fromTermLike
+                            (Mock.constr10
+                                (Mock.constr10 (mkAnd plain0OfA plain1OfA))
+                            )
                         ]
                     , Nothing
                     )
@@ -468,14 +415,11 @@ test_andTermsSimplification =
 
     , testCase "binary constructor of non-specialcased values" $ do
         let expect =
-                (   [ Conditional
-                        { term =
-                            Mock.functionalConstr20
-                                (mkAnd plain0OfA plain1OfA)
-                                (mkAnd plain0OfB plain1OfB)
-                        , predicate = makeTruePredicate
-                        , substitution = mempty
-                        }
+                (   [ Pattern.fromTermLike
+                        (Mock.functionalConstr20
+                            (mkAnd plain0OfA plain1OfA)
+                            (mkAnd plain0OfB plain1OfB)
+                        )
                     ]
                 , Nothing
                 )
@@ -490,7 +434,7 @@ test_andTermsSimplification =
             let expect = Just
                     [ Conditional
                         { term = Mock.builtinMap [(Mock.a, Mock.b)]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution =
                             Substitution.unsafeWrap [(ElemVar Mock.x, Mock.b)]
                         }
@@ -514,7 +458,7 @@ test_andTermsSimplification =
                     [ Conditional
                         { term =
                             Mock.builtinMap [(Mock.a, fOfA), (Mock.b, fOfB)]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.wrap
                             [ (ElemVar Mock.x, fOfA)
                             , (ElemVar Mock.m, Mock.builtinMap [(Mock.b, fOfB)])
@@ -535,7 +479,7 @@ test_andTermsSimplification =
                     [ Conditional
                         { term =
                             Mock.builtinMap [(Mock.a, fOfA), (Mock.b, fOfB)]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.wrap
                             [ (ElemVar Mock.x, fOfA)
                             , (ElemVar Mock.m, Mock.builtinMap [(Mock.b, fOfB)])
@@ -556,7 +500,7 @@ test_andTermsSimplification =
                     [ Conditional
                         { term =
                             Mock.builtinMap [(Mock.a, fOfA) , (Mock.b, fOfB)]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.wrap
                             [ (ElemVar Mock.x, fOfA)
                             , (ElemVar Mock.m, Mock.builtinMap [(Mock.b, fOfB)])
@@ -577,7 +521,7 @@ test_andTermsSimplification =
                     [ Conditional
                         { term =
                             Mock.builtinMap [(Mock.a, fOfA), (Mock.b, fOfB)]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.wrap
                             [ (ElemVar Mock.x, fOfA)
                             , (ElemVar Mock.m, Mock.builtinMap [(Mock.b, fOfB)])
@@ -597,7 +541,7 @@ test_andTermsSimplification =
             let expect = Just
                     [ Conditional
                         { term = Mock.builtinMap [ (Mock.a, fOfA) ]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.wrap
                             [ (ElemVar Mock.x, Mock.a)
                             , (ElemVar Mock.y, fOfA)
@@ -622,7 +566,7 @@ test_andTermsSimplification =
                                 , fOfA
                                 )
                             ]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [   ( ElemVar Mock.xSubSort
                                 , Mock.sortInjectionSubSubToSub Mock.aSubSubsort
@@ -653,7 +597,7 @@ test_andTermsSimplification =
                 expected = Just
                     [ Conditional
                         { term = testMapInj
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [   ( ElemVar Mock.xSubSort
                                 , Mock.sortInjection
@@ -681,7 +625,7 @@ test_andTermsSimplification =
                                 , fOfA
                                 )
                             ]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [   ( ElemVar Mock.xSubSort
                                 , Mock.sortInjectionSubSubToSub Mock.aSubSubsort
@@ -716,7 +660,7 @@ test_andTermsSimplification =
                                     Mock.aSubSubsort
                                 )
                             ]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [   ( ElemVar Mock.xSubSort
                                 , Mock.sortInjectionSubSubToSub Mock.aSubSubsort
@@ -751,13 +695,7 @@ test_andTermsSimplification =
                         [ Mock.constr10 Mock.cf
                         , Mock.constr11 Mock.cf
                         ]
-                expect = Just
-                    [ Conditional
-                        { term = term1
-                        , predicate = makeTruePredicate
-                        , substitution = mempty
-                        }
-                    ]
+                expect = Just [ Pattern.fromTermLike term1 ]
             actual <- unify term1 term1
             assertEqual "" expect actual
 
@@ -776,7 +714,7 @@ test_andTermsSimplification =
                 expect = Just
                     [ Conditional
                         { term = Mock.builtinList [Mock.a, Mock.b]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate Mock.listSort
                         , substitution = Substitution.unsafeWrap
                             [(ElemVar x, Mock.builtinList [Mock.b])]
                         }
@@ -795,7 +733,8 @@ test_andTermsSimplification =
             let expectTerm = mkAnd rhs lhs
                 expect =
                     Pattern.fromTermLike expectTerm
-                    `Conditional.andPredicate` makeCeilPredicate expectTerm
+                    `Conditional.andPredicate`
+                        makeCeilPredicate Mock.listSort expectTerm
                 x = mkElemVar $ elemVarS "x" Mock.testSort
                 l = mkElemVar $ elemVarS "y" Mock.listSort
                 -- List unification does not fully succeed because the
@@ -814,7 +753,7 @@ test_andTermsSimplification =
                 expected = Just
                     [ Conditional
                         { term = Mock.builtinSet [Mock.a]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [ (ElemVar Mock.x, Mock.a) ]
                         }
@@ -831,7 +770,7 @@ test_andTermsSimplification =
                 expected1 =
                     Conditional
                         { term = Mock.builtinSet [Mock.a, Mock.b]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [ (ElemVar Mock.x, Mock.a)
                             , (ElemVar Mock.xSet, Mock.builtinSet [Mock.b])
@@ -840,7 +779,7 @@ test_andTermsSimplification =
                 expected2 =
                     Conditional
                         { term = Mock.builtinSet [Mock.a, Mock.b]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [ (ElemVar Mock.x, Mock.b)
                             , (ElemVar Mock.xSet, Mock.builtinSet [Mock.a])
@@ -859,7 +798,7 @@ test_andTermsSimplification =
                     [ Conditional
                         { term = Mock.builtinSet
                             [ Mock.sortInjection Mock.testSort Mock.aSubSubsort ]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [   ( ElemVar Mock.xSubSort
                                 , Mock.sortInjectionSubSubToSub Mock.aSubSubsort
@@ -881,7 +820,7 @@ test_andTermsSimplification =
                     [ Conditional
                         { term = Mock.builtinSet
                             [ Mock.sortInjection Mock.testSort Mock.aSubSubsort ]
-                        , predicate = makeTruePredicate
+                        , predicate = makeTruePredicate_
                         , substitution = Substitution.unsafeWrap
                             [   ( ElemVar Mock.xSubSort
                                 , Mock.sortInjectionSubSubToSub Mock.aSubSubsort
@@ -913,7 +852,7 @@ test_andTermsSimplification =
                 expected =
                     [ Conditional
                             { term = testSet
-                            , predicate = makeTruePredicate
+                            , predicate = makeTruePredicate_
                             , substitution = Substitution.unsafeWrap
                                 [   (ElemVar Mock.x, Mock.a)
                                 ,   ( ElemVar Mock.xSubSort
@@ -972,7 +911,8 @@ test_andTermsSimplification =
                 expect =
                     Conditional
                         { term = Mock.injective10 fOfA
-                        , predicate = makeEqualsPredicate fOfA gOfA
+                        , predicate =
+                            makeEqualsPredicate Mock.testSort fOfA gOfA
                         , substitution = mempty
                         }
                 x = mkVariable "x"
@@ -984,12 +924,7 @@ test_andTermsSimplification =
             [ testCase "top level" $ do
                 let
                     expect =
-                        (   [ Conditional
-                                { term = mkAnd left plain1OfA
-                                , predicate = makeTruePredicate
-                                , substitution = mempty
-                                }
-                            ]
+                        ( [ Pattern.fromTermLike (mkAnd left plain1OfA) ]
                         , Nothing
                         )
                     x = mkVariable "x"
@@ -1001,11 +936,8 @@ test_andTermsSimplification =
             , testCase "one level deep" $ do
                 let
                     expect =
-                        (   [ Conditional
-                                { term = Mock.constr10 (mkAnd plain0OfA plain1OfA)
-                                , predicate = makeTruePredicate
-                                , substitution = mempty
-                                }
+                        (   [ Pattern.fromTermLike
+                                (Mock.constr10 (mkAnd plain0OfA plain1OfA))
                             ]
                         , Nothing
                         )
@@ -1042,7 +974,7 @@ test_equalsTermsSimplification =
         let expected = Just
                 [ Conditional
                     { term = ()
-                    , predicate = makeCeilPredicate Mock.cf
+                    , predicate = makeCeilPredicate_ Mock.cf
                     , substitution =
                         Substitution.unsafeWrap [(ElemVar Mock.x, Mock.cf)]
                     }
@@ -1054,13 +986,13 @@ test_equalsTermsSimplification =
             expected = Just
                 [ Conditional
                     { term = ()
-                    , predicate = makeEqualsPredicate (Mock.f Mock.a) Mock.a
+                    , predicate = makeEqualsPredicate_ (Mock.f Mock.a) Mock.a
                     , substitution =
                         Substitution.unsafeWrap [(ElemVar Mock.x, Mock.cf)]
                     }
                 , Conditional
                     { term = ()
-                    , predicate = makeEqualsPredicate (Mock.f Mock.b) Mock.b
+                    , predicate = makeEqualsPredicate_ (Mock.f Mock.b) Mock.b
                     , substitution =
                         Substitution.unsafeWrap [(ElemVar Mock.x, Mock.cf)]
                     }
@@ -1088,8 +1020,8 @@ test_equalsTermsSimplification =
                                         )
                                         (mkEquals_ (mkElemVar Mock.y) Mock.b)
                                     )
-                            , requires = makeTruePredicate
-                            , ensures = makeTruePredicate
+                            , requires = makeTruePredicate_
+                            , ensures = makeTruePredicate_
                             , attributes = def
                                 {Attribute.simplification = Simplification True}
                             }
@@ -1104,8 +1036,8 @@ test_equalsTermsSimplification =
                 [ Conditional
                     { term = ()
                     , predicate = makeAndPredicate
-                        (makeEqualsPredicate (Mock.f Mock.a) Mock.a)
-                        (makeEqualsPredicate (Mock.g Mock.a) Mock.a)
+                        (makeEqualsPredicate_ (Mock.f Mock.a) Mock.a)
+                        (makeEqualsPredicate_ (Mock.g Mock.a) Mock.a)
                     , substitution = Substitution.unsafeWrap
                         [ (ElemVar Mock.x, Mock.cf)
                         , (ElemVar Mock.var_x_1, Mock.cg)
@@ -1114,8 +1046,8 @@ test_equalsTermsSimplification =
                 , Conditional
                     { term = ()
                     , predicate = makeAndPredicate
-                        (makeEqualsPredicate (Mock.f Mock.a) Mock.a)
-                        (makeEqualsPredicate (Mock.g Mock.b) Mock.b)
+                        (makeEqualsPredicate_ (Mock.f Mock.a) Mock.a)
+                        (makeEqualsPredicate_ (Mock.g Mock.b) Mock.b)
                     , substitution = Substitution.unsafeWrap
                         [ (ElemVar Mock.x, Mock.cf)
                         , (ElemVar Mock.var_x_1, Mock.cg)
@@ -1124,8 +1056,8 @@ test_equalsTermsSimplification =
                 , Conditional
                     { term = ()
                     , predicate = makeAndPredicate
-                        (makeEqualsPredicate (Mock.f Mock.b) Mock.b)
-                        (makeEqualsPredicate (Mock.g Mock.a) Mock.a)
+                        (makeEqualsPredicate_ (Mock.f Mock.b) Mock.b)
+                        (makeEqualsPredicate_ (Mock.g Mock.a) Mock.a)
                     , substitution = Substitution.unsafeWrap
                         [ (ElemVar Mock.x, Mock.cf)
                         , (ElemVar Mock.var_x_1, Mock.cg)
@@ -1134,8 +1066,8 @@ test_equalsTermsSimplification =
                 , Conditional
                     { term = ()
                     , predicate = makeAndPredicate
-                        (makeEqualsPredicate (Mock.f Mock.b) Mock.b)
-                        (makeEqualsPredicate (Mock.g Mock.b) Mock.b)
+                        (makeEqualsPredicate_ (Mock.f Mock.b) Mock.b)
+                        (makeEqualsPredicate_ (Mock.g Mock.b) Mock.b)
                     , substitution = Substitution.unsafeWrap
                         [ (ElemVar Mock.x, Mock.cf)
                         , (ElemVar Mock.var_x_1, Mock.cg)
@@ -1165,8 +1097,8 @@ test_equalsTermsSimplification =
                                         )
                                         (mkEquals_ (mkElemVar Mock.y) Mock.b)
                                     )
-                            , requires = makeTruePredicate
-                            , ensures = makeTruePredicate
+                            , requires = makeTruePredicate_
+                            , ensures = makeTruePredicate_
                             , attributes = def
                                 {Attribute.simplification = Simplification True}
                             }
@@ -1193,8 +1125,8 @@ test_equalsTermsSimplification =
                                         )
                                         (mkEquals_ (mkElemVar Mock.z) Mock.b)
                                     )
-                            , requires = makeTruePredicate
-                            , ensures = makeTruePredicate
+                            , requires = makeTruePredicate_
+                            , ensures = makeTruePredicate_
                             , attributes = def
                                 {Attribute.simplification = Simplification True}
                             }
@@ -1220,7 +1152,7 @@ test_equalsTermsSimplification =
                     ]
                 return Conditional
                     { term = ()
-                    , predicate = makeTruePredicate
+                    , predicate = makeTruePredicate_
                     , substitution = Substitution.unsafeWrap
                         [ (ElemVar Mock.x, xValue)
                         , ( ElemVar Mock.xSet
@@ -1244,7 +1176,7 @@ test_functionAnd =
             expect =
                 Pattern.withCondition (f x)
                 $ Condition.fromPredicate
-                $ makeEqualsPredicate (f x) (f y)
+                $ makeEqualsPredicate_ (f x) (f y)
         let Just actual = functionAnd (f x) (f y)
         assertEqual "" expect actual
         assertBool "" (Pattern.isSimplified actual)

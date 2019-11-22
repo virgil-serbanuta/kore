@@ -130,7 +130,7 @@ instance
     mempty =
         Conditional
             { term = mempty
-            , predicate = Predicate.makeTruePredicate
+            , predicate = Predicate.makeTruePredicate_
             , substitution = mempty
             }
     {-# INLINE mempty #-}
@@ -142,7 +142,7 @@ instance InternalVariable variable => Applicative (Conditional variable) where
     pure term =
         Conditional
             { term
-            , predicate = Predicate.makeTruePredicate
+            , predicate = Predicate.makeTruePredicate_
             , substitution = mempty
             }
 
@@ -292,7 +292,7 @@ fromSubstitution
 fromSubstitution substitution =
     Conditional
         { term = ()
-        , predicate = Predicate.makeTruePredicate
+        , predicate = Predicate.makeTruePredicate_
         , substitution
         }
 
@@ -308,7 +308,7 @@ fromSingleSubstitution
 fromSingleSubstitution (variable, termLike) =
     Conditional
         { term = ()
-        , predicate = Predicate.makeTruePredicate
+        , predicate = Predicate.makeTruePredicate_
         , substitution = Substitution.singleton variable termLike
         }
 

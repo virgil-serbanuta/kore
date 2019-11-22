@@ -20,9 +20,9 @@ import Kore.Internal.Pattern as Conditional
     )
 import Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
-    ( makeEqualsPredicate
+    ( makeEqualsPredicate_
     , makeNotPredicate
-    , makeTruePredicate
+    , makeTruePredicate_
     )
 import Kore.Internal.TermLike
 import Kore.Step.Rule
@@ -145,7 +145,7 @@ test_allPathVerification =
             (Left Conditional
                 { term = Mock.functionalConstr11 (mkElemVar Mock.x)
                 , predicate =
-                    makeNotPredicate $ makeEqualsPredicate (mkElemVar Mock.x) Mock.a
+                    makeNotPredicate $ makeEqualsPredicate_ (mkElemVar Mock.x) Mock.a
                 , substitution = mempty
                 }
             )
@@ -306,8 +306,8 @@ simpleTrustedClaim left right =
             { left = left
             , antiLeft = Nothing
             , right = right
-            , requires = makeTruePredicate
-            , ensures = makeTruePredicate
+            , requires = makeTruePredicate_
+            , ensures = makeTruePredicate_
             , attributes = def
                 { Attribute.trusted = Attribute.Trusted True }
             }

@@ -203,8 +203,8 @@ rulePattern left right =
         { left
         , antiLeft = Nothing
         , right
-        , requires = Predicate.makeTruePredicate
-        , ensures  = Predicate.makeTruePredicate
+        , requires = Predicate.makeTruePredicate_
+        , ensures  = Predicate.makeTruePredicate_
         , attributes = Default.def
         }
 
@@ -653,7 +653,7 @@ patternToAxiomPattern attributes pat =
                         , antiLeft = Nothing
                         , right = rhs
                         , requires = Predicate.wrapPredicate requires
-                        , ensures = Predicate.makeTruePredicate
+                        , ensures = Predicate.makeTruePredicate_
                         , attributes
                         }
                 _ -> koreFail $ unlines
@@ -668,8 +668,8 @@ patternToAxiomPattern attributes pat =
                 { left = lhs
                 , antiLeft = Nothing
                 , right = rhs
-                , requires = Predicate.makeTruePredicate
-                , ensures = Predicate.makeTruePredicate
+                , requires = Predicate.makeTruePredicate_
+                , ensures = Predicate.makeTruePredicate_
                 , attributes
                 }
         -- definedness axioms
@@ -678,8 +678,8 @@ patternToAxiomPattern attributes pat =
                 { left = ceil
                 , antiLeft = Nothing
                 , right = TermLike.mkTop resultSort
-                , requires = Predicate.makeTruePredicate
-                , ensures = Predicate.makeTruePredicate
+                , requires = Predicate.makeTruePredicate_
+                , ensures = Predicate.makeTruePredicate_
                 , attributes
                 }
         TermLike.Forall_ _ _ child -> patternToAxiomPattern attributes child
@@ -691,8 +691,8 @@ patternToAxiomPattern attributes pat =
                     { left = lhs
                     , antiLeft = Nothing
                     , right = rhs
-                    , requires = Predicate.makeTruePredicate
-                    , ensures = Predicate.makeTruePredicate
+                    , requires = Predicate.makeTruePredicate_
+                    , ensures = Predicate.makeTruePredicate_
                     , attributes
                     }
         _

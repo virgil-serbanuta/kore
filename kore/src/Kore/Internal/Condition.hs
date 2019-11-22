@@ -78,7 +78,7 @@ top :: InternalVariable variable => Condition variable
 top =
     Conditional
         { term = ()
-        , predicate = Predicate.makeTruePredicate
+        , predicate = Predicate.makeTruePredicate_
         , substitution = mempty
         }
 
@@ -90,7 +90,7 @@ bottom :: InternalVariable variable => Condition variable
 bottom =
     Conditional
         { term = ()
-        , predicate = Predicate.makeFalsePredicate
+        , predicate = Predicate.makeFalsePredicate_
         , substitution = mempty
         }
 

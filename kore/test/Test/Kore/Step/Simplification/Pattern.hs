@@ -65,7 +65,7 @@ notTop = termLike (mkNot mkTop_)
 orAs = termLike (mkOr Mock.a Mock.a)
 -- | Term is defined, but predicate is \bottom.
 bottomLike =
-    (termLike Mock.a) { Pattern.predicate = Predicate.makeFalsePredicate }
+    (termLike Mock.a) { Pattern.predicate = Predicate.makeFalsePredicate_ }
 
 simplify :: Pattern Variable -> IO (OrPattern Variable)
 simplify = runSimplifier Mock.env . Pattern.simplify

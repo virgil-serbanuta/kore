@@ -26,10 +26,10 @@ import Kore.Internal.OrPattern
 import qualified Kore.Internal.OrPattern as OrPattern
 import Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
-    ( makeEqualsPredicate
-    , makeFalsePredicate
+    ( makeEqualsPredicate_
+    , makeFalsePredicate_
     , makeOrPredicate
-    , makeTruePredicate
+    , makeTruePredicate_
     )
 import Kore.Internal.Predicate
     ( Predicate
@@ -193,22 +193,22 @@ testVar ident = ElementVariable $ Variable (testId ident) mempty Mock.testSort
 type TestPredicate = Predicate Variable
 
 pT :: TestPredicate
-pT = makeTruePredicate
+pT = makeTruePredicate_
 
 pm :: TestPredicate
 pm =
-    makeEqualsPredicate
+    makeEqualsPredicate_
         (mkElemVar $ testVar "left")
         (mkElemVar $ testVar "right")
 
 pM :: TestPredicate
 pM =
-    makeEqualsPredicate
+    makeEqualsPredicate_
         (mkElemVar $ testVar "LEFT")
         (mkElemVar $ testVar "RIGHT")
 
 p_ :: TestPredicate
-p_ = makeFalsePredicate
+p_ = makeFalsePredicate_
 
 type TestSubstitution = Substitution Variable
 

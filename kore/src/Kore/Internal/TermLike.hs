@@ -1084,7 +1084,10 @@ fullyOverrideSort
     => Sort
     -> TermLike variable
     -> TermLike variable
-fullyOverrideSort forcedSort = Recursive.apo overrideSortWorker
+fullyOverrideSort forcedSort =
+    if forcedSort == predicateSort
+        then id
+        else Recursive.apo overrideSortWorker
   where
     overrideSortWorker
         :: TermLike variable

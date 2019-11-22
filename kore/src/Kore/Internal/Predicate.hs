@@ -15,21 +15,27 @@ module Kore.Internal.Predicate
     , makeAndPredicate
     , makeMultipleAndPredicate
     , makeCeilPredicate
+    , makeCeilPredicate_
     , makeEqualsPredicate
+    , makeEqualsPredicate_
     , makeExistsPredicate
     , makeMultipleExists
     , makeForallPredicate
     , makeFalsePredicate
+    , makeFalsePredicate_
     , makeFloorPredicate
+    , makeFloorPredicate_
     , makeIffPredicate
     , makeImpliesPredicate
     , makeInPredicate
+    , makeInPredicate_
     , makeMuPredicate
     , makeNotPredicate
     , makeNuPredicate
     , makeOrPredicate
     , makeMultipleOrPredicate
     , makeTruePredicate
+    , makeTruePredicate_
     , isSimplified
     , markSimplified
     , freeVariables
@@ -203,11 +209,11 @@ This is a safe operation because predicates are flexibly sorted.
 
  -}
 coerceSort
-    :: InternalVariable variable
+    :: (HasCallStack, InternalVariable variable)
     => Sort
     -> Predicate variable
     -> Predicate variable
-coerceSort sort = fmap (TermLike.forceSort sort)
+coerceSort sort = fmap (TermLike.fullyOverrideSort sort)
 
 {-|'PredicateFalse' is a pattern for matching 'bottom' predicates.
 -}
@@ -233,7 +239,7 @@ makeMultipleAndPredicate
     => [Predicate variable]
     -> Predicate variable
 makeMultipleAndPredicate =
-    foldl' makeAndPredicate makeTruePredicate . nub
+    foldl' makeAndPredicate makeTruePredicate_ . nub
     -- 'and' is idempotent so we eliminate duplicates
     -- TODO: This is O(n^2), consider doing something better.
 
@@ -261,7 +267,7 @@ makeMultipleOrPredicate
     => [Predicate variable]
     -> Predicate variable
 makeMultipleOrPredicate =
-    foldl' makeOrPredicate makeFalsePredicate . nub
+    foldl' makeOrPredicate makeFalsePredicate_ . nub
     -- 'or' is idempotent so we eliminate duplicates
     -- TODO: This is O(n^2), consider doing something better.
 
@@ -307,7 +313,7 @@ makeImpliesPredicate
     => Predicate variable
     -> Predicate variable
     -> Predicate variable
-makeImpliesPredicate PredicateFalse _ = makeTruePredicate
+makeImpliesPredicate PredicateFalse _ = makeTruePredicate_
 makeImpliesPredicate _ t@PredicateTrue = t
 makeImpliesPredicate PredicateTrue second = second
 makeImpliesPredicate first PredicateFalse = makeNotPredicate first
@@ -336,52 +342,89 @@ makeNotPredicate
     :: InternalVariable variable
     => Predicate variable
     -> Predicate variable
-makeNotPredicate PredicateFalse = makeTruePredicate
-makeNotPredicate PredicateTrue  = makeFalsePredicate
+makeNotPredicate PredicateFalse = makeTruePredicate_
+makeNotPredicate PredicateTrue  = makeFalsePredicate_
 makeNotPredicate (GenericPredicate predicate) =
     GenericPredicate $ TermLike.mkNot predicate
 
-{-| 'makeEqualsPredicate' combines two patterns with equals, producing a
+{-| 'makeEqualsPredicate_' combines two patterns with equals, producing a
 predicate.
 -}
-makeEqualsPredicate
+makeEqualsPredicate_
     :: InternalVariable variable
     => TermLike variable
     -> TermLike variable
     -> Predicate variable
-makeEqualsPredicate first second =
+makeEqualsPredicate_ first second =
     GenericPredicate $ TermLike.mkEquals_ first second
 
-{-| 'makeInPredicate' combines two patterns with 'in', producing a
+makeEqualsPredicate
+    :: InternalVariable variable
+    => Sort
+    -> TermLike variable
+    -> TermLike variable
+    -> Predicate variable
+makeEqualsPredicate sort first second =
+    GenericPredicate $ TermLike.mkEquals sort first second
+
+{-| 'makeInPredicate_' combines two patterns with 'in', producing a
+predicate.
+-}
+makeInPredicate_
+    :: InternalVariable variable
+    => TermLike variable
+    -> TermLike variable
+    -> Predicate variable
+makeInPredicate_ first second =
+    GenericPredicate $ TermLike.mkIn_ first second
+
+{-| 'makeInPredicate_' combines two patterns with 'in', producing a
 predicate.
 -}
 makeInPredicate
     :: InternalVariable variable
-    => TermLike variable
+    => Sort
+    -> TermLike variable
     -> TermLike variable
     -> Predicate variable
-makeInPredicate first second =
-    GenericPredicate $ TermLike.mkIn_ first second
+makeInPredicate sort first second =
+    GenericPredicate $ TermLike.mkIn sort first second
 
-{-| 'makeCeilPredicate' takes the 'ceil' of a pattern, producing a
+{-| 'makeCeilPredicate_' takes the 'ceil' of a pattern, producing a
 predicate.
 -}
-makeCeilPredicate
+makeCeilPredicate_
     :: InternalVariable variable
     => TermLike variable
     -> Predicate variable
-makeCeilPredicate patt =
+makeCeilPredicate_ patt =
     GenericPredicate $ TermLike.mkCeil_ patt
 
-{-| 'makeFloorPredicate' takes the 'floor' of a pattern, producing a
+makeCeilPredicate
+    :: InternalVariable variable
+    => Sort
+    -> TermLike variable
+    -> Predicate variable
+makeCeilPredicate sort patt =
+    GenericPredicate $ TermLike.mkCeil sort patt
+
+{-| 'makeFloorPredicate_' takes the 'floor' of a pattern, producing a
 predicate.
 -}
-makeFloorPredicate
+makeFloorPredicate_
     :: InternalVariable variable
     => TermLike variable
     -> Predicate variable
-makeFloorPredicate patt =
+makeFloorPredicate_ patt =
     GenericPredicate $ TermLike.mkFloor_ patt
+
+makeFloorPredicate
+    :: InternalVariable variable
+    => Sort
+    -> TermLike variable
+    -> Predicate variable
+makeFloorPredicate sort patt =
+    GenericPredicate $ TermLike.mkFloor sort patt
 
 {-| Existential quantification for the given variable in the given predicate.
 -}
@@ -441,15 +484,21 @@ makeNuPredicate _ t@PredicateTrue = t
 makeNuPredicate v (GenericPredicate p) =
     GenericPredicate $ TermLike.mkNu v p
 
-{-| 'makeTruePredicate' produces a predicate wrapping a 'top'.
+{-| 'makeTruePredicate_' produces a predicate wrapping a 'top'.
 -}
-makeTruePredicate :: InternalVariable variable => Predicate variable
-makeTruePredicate = GenericPredicate TermLike.mkTop_
+makeTruePredicate_ :: InternalVariable variable => Predicate variable
+makeTruePredicate_ = GenericPredicate TermLike.mkTop_
 
-{-| 'makeFalsePredicate' produces a predicate wrapping a 'bottom'.
+makeTruePredicate :: InternalVariable variable => Sort -> Predicate variable
+makeTruePredicate sort = GenericPredicate (TermLike.mkTop sort)
+
+{-| 'makeFalsePredicate_' produces a predicate wrapping a 'bottom'.
 -}
-makeFalsePredicate :: InternalVariable variable => Predicate variable
-makeFalsePredicate = GenericPredicate TermLike.mkBottom_
+makeFalsePredicate_ :: InternalVariable variable => Predicate variable
+makeFalsePredicate_ = GenericPredicate TermLike.mkBottom_
+
+makeFalsePredicate :: InternalVariable variable => Sort -> Predicate variable
+makeFalsePredicate sort = GenericPredicate (TermLike.mkBottom sort)
 
 {-| When transforming a term into a predicate, this tells
 whether the predicate is different in a significant way from the term used
@@ -502,8 +551,8 @@ makePredicate t = fst <$> makePredicateWorker t
             childChanged :: HasChanged
             childChanged = Foldable.fold (dropPredicate <$> termWithChanged)
         predicate <- case patE of
-            TopF _ -> return makeTruePredicate
-            BottomF _ -> return makeFalsePredicate
+            TopF _ -> return makeTruePredicate_
+            BottomF _ -> return makeFalsePredicate_
             AndF p -> return $ makeAndPredicate (andFirst p) (andSecond p)
             OrF p -> return $ makeOrPredicate (orFirst p) (orSecond p)
             IffF p -> return $ makeIffPredicate (iffFirst p) (iffSecond p)
@@ -533,22 +582,22 @@ makePredicate t = fst <$> makePredicateWorker t
             CeilF Ceil { ceilChild } ->
                 (Left . pure)
                     ( keepSimplifiedAndUpdateChanged'
-                    $ makeCeilPredicate ceilChild
+                    $ makeCeilPredicate_ ceilChild
                     )
             FloorF Floor { floorChild } ->
                 (Left . pure)
                     ( keepSimplifiedAndUpdateChanged'
-                    $ makeFloorPredicate floorChild
+                    $ makeFloorPredicate_ floorChild
                     )
             EqualsF Equals { equalsFirst, equalsSecond } ->
                 (Left . pure)
                     ( keepSimplifiedAndUpdateChanged'
-                    $ makeEqualsPredicate equalsFirst equalsSecond
+                    $ makeEqualsPredicate_ equalsFirst equalsSecond
                     )
             InF In { inContainedChild, inContainingChild } ->
                 (Left . pure)
                     ( keepSimplifiedAndUpdateChanged'
-                    $ makeInPredicate inContainedChild inContainingChild
+                    $ makeInPredicate_ inContainedChild inContainingChild
                     )
             _ -> Right projected
       where
@@ -665,7 +714,7 @@ singleSubstitutionToPredicate (var, patt) =
     -- Never mark this as simplified since we want to be able to rebuild the
     -- substitution sometimes (e.g. not(not(subst)) and when simplifying
     -- claims).
-    makeEqualsPredicate (TermLike.mkVar var) patt
+    makeEqualsPredicate_ (TermLike.mkVar var) patt
 
 {- | @fromSubstitution@ constructs a 'Predicate' equivalent to 'Substitution'.
 

@@ -10,6 +10,7 @@ module Kore.Internal.OrPattern
     , toPatterns
     , fromPattern
     , fromTermLike
+    , fromTermLikeUnsorted
     , bottom
     , isFalse
     , isPredicate
@@ -85,6 +86,12 @@ fromTermLike
     => TermLike variable
     -> OrPattern variable
 fromTermLike = fromPattern . Pattern.fromTermLike
+
+fromTermLikeUnsorted
+    :: InternalVariable variable
+    => TermLike variable
+    -> OrPattern variable
+fromTermLikeUnsorted = fromPattern . Pattern.fromTermLikeUnsorted
 
 {- | @\\bottom@
 

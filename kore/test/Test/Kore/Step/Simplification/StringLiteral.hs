@@ -12,7 +12,7 @@ import Kore.Internal.Pattern
     ( Conditional (..)
     )
 import Kore.Internal.Predicate
-    ( makeTruePredicate
+    ( makeTruePredicate_
     )
 import Kore.Internal.TermLike
 import Kore.Step.Simplification.StringLiteral
@@ -28,7 +28,7 @@ test_stringLiteralSimplification =
             (OrPattern.fromPatterns
                 [ Conditional
                     { term = mkStringLiteral "a"
-                    , predicate = makeTruePredicate
+                    , predicate = makeTruePredicate_
                     , substitution = mempty
                     }
                 ]

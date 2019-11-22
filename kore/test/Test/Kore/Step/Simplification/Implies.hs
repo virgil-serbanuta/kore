@@ -96,13 +96,13 @@ equalsXC :: Pattern Variable
 equalsXC = fromPredicate equalsXC_
 
 equalsXA_ :: Predicate Variable
-equalsXA_ = Predicate.makeEqualsPredicate (mkElemVar Mock.x) Mock.a
+equalsXA_ = Predicate.makeEqualsPredicate_ (mkElemVar Mock.x) Mock.a
 
 equalsXB_ :: Predicate Variable
-equalsXB_ = Predicate.makeEqualsPredicate (mkElemVar Mock.x) Mock.b
+equalsXB_ = Predicate.makeEqualsPredicate_ (mkElemVar Mock.x) Mock.b
 
 equalsXC_ :: Predicate Variable
-equalsXC_ = Predicate.makeEqualsPredicate (mkElemVar Mock.x) Mock.c
+equalsXC_ = Predicate.makeEqualsPredicate_ (mkElemVar Mock.x) Mock.c
 
 impliesEqualsXAEqualsXB :: Pattern Variable
 impliesEqualsXAEqualsXB = fromPredicate $
