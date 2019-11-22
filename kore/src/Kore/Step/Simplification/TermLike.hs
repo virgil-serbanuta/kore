@@ -49,10 +49,17 @@ import qualified Kore.Internal.Predicate as Predicate
 import Kore.Internal.TermLike
     ( TermLike
     , TermLikeF (..)
+    , termLikeSort
     )
 import qualified Kore.Internal.TermLike as TermLike
+import Kore.Internal.Variable
+    ( InternalVariable
+    )
 import qualified Kore.Profiler.Profile as Profiler
     ( identifierSimplification
+    )
+import Kore.Sort
+    ( Sort
     )
 import qualified Kore.Step.Axiom.Identifier as AxiomIdentifier
     ( matchAxiomIdentifier
@@ -244,7 +251,8 @@ simplifyInternal term predicate = do
                 $ Condition.fromPredicate termPredicate
         | otherwise
         = assertTermNotPredicate $ tracer termLike $ do
-            termOr <- descendAndSimplify termLike
+            unfixedTermOr <- descendAndSimplify termLike
+            let termOr = fixOrPatternSorts (termLikeSort termLike) unfixedTermOr
             returnIfSimplifiedOrContinue
                 termLike
                 (OrPattern.toPatterns termOr)
@@ -344,6 +352,7 @@ simplifyInternal term predicate = do
                     Conditional {substitution} -> substitution == mempty
             termAsPredicate =
                 Condition.fromPredicate <$> Predicate.makePredicate term
+
     descendAndSimplify :: TermLike variable -> simplifier (OrPattern variable)
     descendAndSimplify termLike =
         let doNotSimplify =
@@ -444,3 +453,24 @@ simplifyInternal term predicate = do
             , binderChild = freshChild
             }
       | otherwise = binder
+
+fixOrPatternSorts
+    :: InternalVariable variable
+    => Sort -> OrPattern variable -> OrPattern variable
+fixOrPatternSorts sort =
+    OrPattern.fromPatterns
+    . map (fixPatternSorts sort)
+    . OrPattern.toPatterns
+
+fixPatternSorts
+    :: InternalVariable variable
+    => Sort -> Pattern variable -> Pattern variable
+fixPatternSorts
+    sort
+    Conditional { term, predicate, substitution }
+  =
+    Conditional
+        { term = TermLike.forceSort sort term
+        , predicate = TermLike.forceSort sort <$> predicate
+        , substitution
+        }

@@ -767,7 +767,7 @@ test_simplificationIntegration =
                 , substitution = mempty
                 }
         assertEqual "" expected actual
-    , testCase "Implies simplification" $ do
+    , testCase "zzzImplies simplification" $ do
         let zz = ElementVariable
                 $ Variable (testId "zz") mempty Mock.subOthersort
             mci = ElementVariable
@@ -886,7 +886,7 @@ test_simplificationIntegration =
                 , substitution = mempty
                 }
         assertBool "" (OrPattern.isSimplified actual)
-    , testCase "Distributed equals simplification" $ do
+    , testCase "zzzDistributed equals simplification" $ do
         let k = SetVariable $ Variable (testId "k") mempty Mock.stringSort
         actual <- evaluate
             Conditional
