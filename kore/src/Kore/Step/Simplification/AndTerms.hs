@@ -307,7 +307,7 @@ maybeTransformTerm
     -> TermLike variable
     -> TermLike variable
     -> MaybeT unifier (Pattern variable)
-maybeTransformTerm topTransformers childTransformers first second = do
+maybeTransformTerm topTransformers childTransformers first second =
     Foldable.asum
         (map
             (\f -> f

@@ -6,6 +6,7 @@ Representation of program configurations as conditional patterns.
 -}
 module Kore.Internal.Pattern
     ( Pattern
+    , coerceSort
     , fromCondition
     , fromConditionSorted
     , bottom
@@ -257,3 +258,18 @@ withCondition
 
 splitTerm :: Pattern variable -> (TermLike variable, Condition variable)
 splitTerm = Conditional.splitTerm
+
+coerceSort
+    :: (HasCallStack, InternalVariable variable)
+    => Sort -> Pattern variable -> Pattern variable
+coerceSort
+    sort
+    Conditional { term, predicate, substitution }
+  =
+    Conditional
+        { term = TermLike.forceSort sort term
+        -- Need to override this since a 'ceil' (say) over a predicate is that
+        -- predicate with a different sort.
+        , predicate = Predicate.coerceSort sort predicate
+        , substitution
+        }

@@ -18,7 +18,9 @@ import qualified Kore.Internal.OrPattern as OrPattern
 import Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
     ( makeAndPredicate
+    , makeEqualsPredicate
     , makeEqualsPredicate_
+    , makeTruePredicate
     , makeTruePredicate_
     )
 import Kore.Internal.TermLike as TermLike
@@ -51,22 +53,22 @@ test_applicationSimplification =
                 OrPattern.fromPatterns
                     [ Conditional
                         { term = Mock.sigma Mock.a Mock.c
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = mempty
                         }
                     , Conditional
                         { term = Mock.sigma Mock.a Mock.d
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = mempty
                         }
                     , Conditional
                         { term = Mock.sigma Mock.b Mock.c
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = mempty
                         }
                     ,  Conditional
                         { term = Mock.sigma Mock.b Mock.d
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = mempty
                         }
                     ]
@@ -144,7 +146,10 @@ test_applicationSimplification =
                             { term = Mock.sigma Mock.a Mock.b
                             , predicate =
                                 makeAndPredicate
-                                    (makeEqualsPredicate_ fOfA fOfB)
+                                    (makeEqualsPredicate Mock.testSort
+                                        fOfA
+                                        fOfB
+                                    )
                                     (makeEqualsPredicate_ gOfA gOfB)
                             , substitution = Substitution.unsafeWrap
                                 [ (ElemVar Mock.x, fOfA)

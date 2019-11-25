@@ -52,14 +52,8 @@ import Kore.Internal.TermLike
     , termLikeSort
     )
 import qualified Kore.Internal.TermLike as TermLike
-import Kore.Internal.Variable
-    ( InternalVariable
-    )
 import qualified Kore.Profiler.Profile as Profiler
     ( identifierSimplification
-    )
-import Kore.Sort
-    ( Sort
     )
 import qualified Kore.Step.Axiom.Identifier as AxiomIdentifier
     ( matchAxiomIdentifier
@@ -256,7 +250,9 @@ simplifyInternal term predicate = do
             unfixedTermOr <- descendAndSimplify termLike
             --traceM (unparseToString termLike)
             --traceM ("------------\n" ++ unlines (unparseToString <$> OrPattern.toPatterns unfixedTermOr))
-            let termOr = fixOrPatternSorts (termLikeSort termLike) unfixedTermOr
+            let termOr = OrPattern.coerceSort
+                    (termLikeSort termLike)
+                    unfixedTermOr
             returnIfSimplifiedOrContinue
                 termLike
                 (OrPattern.toPatterns termOr)
@@ -457,26 +453,3 @@ simplifyInternal term predicate = do
             , binderChild = freshChild
             }
       | otherwise = binder
-
-fixOrPatternSorts
-    :: (GHC.HasCallStack, InternalVariable variable)
-    => Sort -> OrPattern variable -> OrPattern variable
-fixOrPatternSorts sort =
-    OrPattern.fromPatterns
-    . map (fixPatternSorts sort)
-    . OrPattern.toPatterns
-
-fixPatternSorts
-    :: (GHC.HasCallStack, InternalVariable variable)
-    => Sort -> Pattern variable -> Pattern variable
-fixPatternSorts
-    sort
-    Conditional { term, predicate, substitution }
-  =
-    Conditional
-        { term = TermLike.forceSort sort term
-        -- Need to override this since a 'ceil' (say) over a predicate is that
-        -- predicate with a different sort.
-        , predicate = TermLike.fullyOverrideSort sort <$> predicate
-        , substitution
-        }

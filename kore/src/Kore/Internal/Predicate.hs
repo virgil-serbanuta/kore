@@ -46,6 +46,7 @@ module Kore.Internal.Predicate
     , singleSubstitutionToPredicate
     , stringFromPredicate
     , coerceSort
+    , predicateSort
     , fromPredicate
     , fromSubstitution
     , unwrapPredicate
@@ -215,6 +216,9 @@ coerceSort
     -> Predicate variable
 coerceSort sort = fmap (TermLike.fullyOverrideSort sort)
 
+predicateSort :: Predicate variable -> Sort
+predicateSort = termLikeSort . unwrapPredicate
+
 {-|'PredicateFalse' is a pattern for matching 'bottom' predicates.
 -}
 pattern PredicateFalse :: Predicate variable
@@ -275,7 +279,7 @@ makeMultipleOrPredicate =
 simplification.
 -}
 makeAndPredicate
-    :: InternalVariable variable
+    :: (HasCallStack, InternalVariable variable)
     => Predicate variable
     -> Predicate variable
     -> Predicate variable

@@ -272,7 +272,7 @@ test_andSimplification =
         ]
 
     , testGroup "constructor and"
-        [ testCase "zzzsame constructors" $ do
+        [ testCase "same constructors" $ do
             let expect =
                     Conditional
                         { term = Mock.constr10 fOfX
@@ -356,7 +356,7 @@ test_andSimplification =
                     ]
                 )
         assertEqual "Distributes or" expect actual
-    , testCase "zzzPredicates are not duplicated" $ do
+    , testCase "Predicates are not duplicated" $ do
         let expect =
                 Conditional
                     { term = Mock.constr10 fOfX

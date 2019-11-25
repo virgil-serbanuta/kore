@@ -52,6 +52,9 @@ import Kore.Internal.TermLike
     , TermLike
     , termLikeSort
     )
+import qualified Kore.Internal.TermLike as TermLike
+    ( fullyOverrideSort
+    )
 import qualified Kore.Internal.TermLike as Internal
 import Kore.TopBottom
     ( TopBottom (..)
@@ -149,12 +152,14 @@ instance InternalVariable variable => Applicative (Conditional variable) where
     (<*>) predicated1 predicated2 =
         Conditional
             { term = f a
-            , predicate = Predicate.makeAndPredicate predicate1 predicate2
+            , predicate = Predicate.makeAndPredicate predicate1 p2
             , substitution = substitution1 <> substitution2
             }
       where
         Conditional f predicate1 substitution1 = predicated1
         Conditional a predicate2 substitution2 = predicated2
+        sort = Predicate.predicateSort predicate1
+        p2 = TermLike.fullyOverrideSort sort <$> predicate2
 
 {- | 'Conditional' is equivalent to the 'Control.Comonad.Env.Env' comonad.
 

@@ -415,7 +415,7 @@ test_unifyAnd_Fn =
             expect =
                 Conditional
                     { term = dv
-                    , predicate = makeEqualsPredicate_ dv fnPat
+                    , predicate = makeEqualsPredicate intSort dv fnPat
                     , substitution = mempty
                     }
         actual <- evaluateT $ mkAnd dv fnPat
