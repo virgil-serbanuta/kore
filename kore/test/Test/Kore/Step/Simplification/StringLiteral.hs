@@ -12,13 +12,14 @@ import Kore.Internal.Pattern
     ( Conditional (..)
     )
 import Kore.Internal.Predicate
-    ( makeTruePredicate_
+    ( makeTruePredicate
     )
 import Kore.Internal.TermLike
 import Kore.Step.Simplification.StringLiteral
     ( simplify
     )
 
+import qualified Test.Kore.Step.MockSymbols as Mock
 import Test.Tasty.HUnit.Ext
 
 test_stringLiteralSimplification :: [TestTree]
@@ -28,7 +29,7 @@ test_stringLiteralSimplification =
             (OrPattern.fromPatterns
                 [ Conditional
                     { term = mkStringLiteral "a"
-                    , predicate = makeTruePredicate_
+                    , predicate = makeTruePredicate Mock.stringSort
                     , substitution = mempty
                     }
                 ]

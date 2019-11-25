@@ -19,6 +19,7 @@ import Kore.Internal.Predicate
     , makeEqualsPredicate
     , makeEqualsPredicate_
     , makeFalsePredicate_
+    , makeTruePredicate
     , makeTruePredicate_
     )
 import Kore.Internal.TermLike
@@ -84,7 +85,7 @@ test_andSimplification =
             let expect =
                     Conditional
                         { term = mkAnd plain0OfX plain1OfX
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = mempty
                         }
             actual <- evaluatePatterns plain0OfXExpanded plain1OfXExpanded
@@ -153,7 +154,7 @@ test_andSimplification =
                 expect =
                     Conditional
                         { term = mkAnd (mkAnd Mock.a Mock.b) Mock.c
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = mempty
                         }
             actual <- evaluatePatterns
@@ -252,7 +253,7 @@ test_andSimplification =
             let expect =
                     Conditional
                         { term = fOfX
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = Substitution.unsafeWrap
                             [(ElemVar Mock.y, fOfX)]
                         }
@@ -263,7 +264,7 @@ test_andSimplification =
             let expect =
                     Conditional
                         { term = fOfX
-                        , predicate = makeTruePredicate_
+                        , predicate = makeTruePredicate Mock.testSort
                         , substitution = Substitution.unsafeWrap
                             [(ElemVar Mock.y, fOfX)]
                         }
@@ -320,12 +321,12 @@ test_andSimplification =
                         }
                     , Conditional
                         { term = fOfX
-                        , predicate = makeCeilPredicate_ gOfX
+                        , predicate = makeCeilPredicate Mock.testSort gOfX
                         , substitution = mempty
                         }
                     , Conditional
                         { term = gOfX
-                        , predicate = makeCeilPredicate_ fOfX
+                        , predicate = makeCeilPredicate Mock.testSort fOfX
                         , substitution = mempty
                         }
                     , Conditional

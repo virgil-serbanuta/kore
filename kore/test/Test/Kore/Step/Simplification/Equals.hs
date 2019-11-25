@@ -383,10 +383,7 @@ test_equalsSimplification_Pattern =
                                     (makeAndPredicate
                                         (makeAndPredicate
                                             (makeAndPredicate
-                                                (makeCeilPredicate
-                                                    Mock.testSort
-                                                    hOfA
-                                                )
+                                                (makeCeilPredicate_ hOfA)
                                                 (makeCeilPredicate_ hOfB)
                                             )
                                             (makeEqualsPredicate_ fOfA fOfB)
@@ -669,7 +666,7 @@ test_equalsSimplification_TermLike =
             (assertTermEquals
                 Conditional
                     { term = ()
-                    , predicate = makeTruePredicate Mock.mapSort
+                    , predicate = makeTruePredicate_
                     , substitution =
                         Substitution.unsafeWrap [(ElemVar Mock.x, Mock.b)]
                     }
@@ -688,7 +685,7 @@ test_equalsSimplification_TermLike =
                     { term = ()
                     , predicate =
                         makeAndPredicate
-                            (makeCeilPredicate Mock.mapSort fOfB)
+                            (makeCeilPredicate_ fOfB)
                             (makeCeilPredicate_ fOfA)
                     , substitution = Substitution.wrap
                         [ (ElemVar Mock.x, fOfA)
@@ -707,7 +704,7 @@ test_equalsSimplification_TermLike =
                     { term = ()
                     , predicate =
                         makeAndPredicate
-                            (makeCeilPredicate Mock.mapSort fOfB)
+                            (makeCeilPredicate_ fOfB)
                             (makeCeilPredicate_ fOfA)
                     , substitution = Substitution.wrap
                         [ (ElemVar Mock.x, fOfA)
@@ -726,7 +723,7 @@ test_equalsSimplification_TermLike =
                     { term = ()
                     , predicate =
                         makeAndPredicate
-                            (makeCeilPredicate Mock.mapSort fOfB)
+                            (makeCeilPredicate_ fOfB)
                             (makeCeilPredicate_ fOfA)
                     , substitution = Substitution.wrap
                         [ (ElemVar Mock.x, fOfA)
@@ -745,7 +742,7 @@ test_equalsSimplification_TermLike =
                     { term = ()
                     , predicate =
                         makeAndPredicate
-                            (makeCeilPredicate Mock.mapSort fOfB)
+                            (makeCeilPredicate_ fOfB)
                             (makeCeilPredicate_ fOfA)
                     , substitution = Substitution.wrap
                         [ (ElemVar Mock.x, fOfA)
@@ -799,7 +796,8 @@ test_equalsSimplification_TermLike =
                     (assertTermEquals
                         Conditional
                             { term = ()
-                            , predicate = makeTruePredicate Mock.listSort
+                            -- TODO(virgil): This sort should be listSort.
+                            , predicate = makeTruePredicate Mock.testSort
                             , substitution = Substitution.wrap
                                 [(ElemVar x, Mock.builtinList [Mock.b])]
                             }

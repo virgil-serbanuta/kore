@@ -47,7 +47,11 @@ test_simplifyEvaluated =
         `becomes_` [impliesEqualsXAEqualsXB, impliesEqualsXAEqualsXC]
     , ([equalsXA, equalsXB], [equalsXC])
         `becomes_`
-            [impliesEqualsXAEqualsXC `andCondition` impliesEqualsXBEqualsXC_]
+            [ Pattern.coerceSort Mock.testSort
+                (impliesEqualsXAEqualsXC
+                    `andCondition` impliesEqualsXBEqualsXC_
+                )
+            ]
     ]
   where
     becomes_
@@ -58,6 +62,7 @@ test_simplifyEvaluated =
     becomes_ (firsts, seconds) expecteds =
         testCase "becomes" $ do
             actual <- simplifyEvaluated first second
+            assertEqual (message actual) expected actual
             assertBool (message actual) (expected == actual)
       where
         first = OrPattern.fromPatterns firsts
@@ -84,7 +89,7 @@ termB :: Pattern Variable
 termB = Pattern.fromTermLike Mock.b
 
 aImpliesB :: Pattern Variable
-aImpliesB = Pattern.fromTermLike (mkImplies Mock.a Mock.b)
+aImpliesB = Pattern.fromTermLikeUnsorted (mkImplies Mock.a Mock.b)
 
 equalsXA :: Pattern Variable
 equalsXA = fromPredicate equalsXA_

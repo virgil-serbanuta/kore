@@ -11,6 +11,7 @@ import qualified Kore.Internal.OrPattern as OrPattern
 import Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
     ( makeEqualsPredicate_
+    , makeTruePredicate
     , makeTruePredicate_
     )
 import Kore.Internal.TermLike
@@ -28,7 +29,7 @@ test_nextSimplification =
             (OrPattern.fromPatterns
                 [ Conditional
                     { term = mkNext Mock.a
-                    , predicate = makeTruePredicate_
+                    , predicate = makeTruePredicate Mock.testSort
                     , substitution = mempty
                     }
                 ]
@@ -54,7 +55,7 @@ test_nextSimplification =
                                 Mock.a
                                 (mkAnd Mock.b (mkEquals_ Mock.a Mock.b))
                             )
-                    , predicate = makeTruePredicate_
+                    , predicate = makeTruePredicate Mock.testSort
                     , substitution = mempty
                     }
                 ]

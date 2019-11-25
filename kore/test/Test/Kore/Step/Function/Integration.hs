@@ -55,7 +55,9 @@ import Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
     ( Predicate
     , makeAndPredicate
+    , makeCeilPredicate
     , makeCeilPredicate_
+    , makeEqualsPredicate
     , makeEqualsPredicate_
     , makeTruePredicate
     , makeTruePredicate_
@@ -284,7 +286,8 @@ test_functionIntegration =
         let expect =
                 Conditional
                     { term = Mock.f Mock.d
-                    , predicate = makeCeilPredicate_ (Mock.plain10 Mock.e)
+                    , predicate = makeCeilPredicate Mock.testSort
+                        (Mock.plain10 Mock.e)
                     , substitution = mempty
                     }
         actual <-
@@ -293,7 +296,9 @@ test_functionIntegration =
                     (AxiomIdentifier.Application Mock.cId)
                     ( appliedMockEvaluator Conditional
                         { term   = Mock.d
-                        , predicate = makeCeilPredicate_ (Mock.plain10 Mock.e)
+                        , predicate =
+                            makeCeilPredicate_
+                                (Mock.plain10 Mock.e)
                         , substitution = mempty
                         }
                     )
@@ -307,7 +312,7 @@ test_functionIntegration =
                     { term = Mock.functional11 (Mock.functional20 Mock.e Mock.e)
                     , predicate =
                         makeAndPredicate
-                            (makeCeilPredicate_ Mock.cf)
+                            (makeCeilPredicate Mock.testSort Mock.cf)
                             (makeCeilPredicate_ Mock.cg)
                     , substitution = mempty
                     }
@@ -342,7 +347,8 @@ test_functionIntegration =
         let expect =
                 Conditional
                     { term = Mock.f Mock.e
-                    , predicate = makeEqualsPredicate_ (Mock.f Mock.e) Mock.e
+                    , predicate = makeEqualsPredicate Mock.testSort
+                        (Mock.f Mock.e) Mock.e
                     , substitution = mempty
                     }
         actual <-
@@ -368,7 +374,7 @@ test_functionIntegration =
         let expect =
                 Conditional
                     { term = Mock.f Mock.e
-                    , predicate = makeTruePredicate_
+                    , predicate = makeTruePredicate Mock.testSort
                     , substitution = Substitution.unsafeWrap
                         [   ( ElemVar Mock.var_x_1
                             , Mock.a
@@ -416,7 +422,8 @@ test_functionIntegration =
         let expect =
                 Conditional
                     { term = Mock.a
-                    , predicate = makeCeilPredicate_ (Mock.plain10 Mock.cf)
+                    , predicate = makeCeilPredicate Mock.testSort
+                        (Mock.plain10 Mock.cf)
                     , substitution = Substitution.unsafeWrap
                         [ (ElemVar Mock.var_x_1, Mock.cf)
                         , (ElemVar Mock.var_y_1, Mock.b)

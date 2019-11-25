@@ -17,7 +17,7 @@ import Kore.Internal.Predicate
     , makeCeilPredicate_
     , makeEqualsPredicate_
     , makeIffPredicate
-    , makeTruePredicate_
+    , makeTruePredicate
     )
 import Kore.Internal.TermLike
 import qualified Kore.Step.Simplification.Iff as Iff
@@ -118,7 +118,7 @@ test_makeEvaluate =
                                 )
                                 (mkEquals_ (mkElemVar Mock.y) Mock.b)
                             )
-                    , predicate = makeTruePredicate_
+                    , predicate = makeTruePredicate Mock.testSort
                     , substitution = mempty
                     }
                 ]
@@ -177,7 +177,7 @@ termA :: Pattern Variable
 termA =
     Conditional
         { term = Mock.a
-        , predicate = makeTruePredicate_
+        , predicate = makeTruePredicate Mock.testSort
         , substitution = mempty
         }
 

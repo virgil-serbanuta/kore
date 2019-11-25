@@ -14,6 +14,7 @@ import Kore.Internal.Predicate
     , makeCeilPredicate_
     , makeEqualsPredicate_
     , makeForallPredicate
+    , makeTruePredicate
     , makeTruePredicate_
     )
 import Kore.Internal.TermLike
@@ -112,7 +113,7 @@ test_forallSimplification =
                                 (mkEquals_ (mkElemVar Mock.y) fOfA)
                             )
                         )
-                , predicate = makeTruePredicate_
+                , predicate = makeTruePredicate Mock.testSort
                 , substitution = mempty
                 }
             (makeEvaluate
@@ -121,7 +122,8 @@ test_forallSimplification =
                     { term = Mock.f $ mkElemVar Mock.x
                     , predicate = makeCeilPredicate_ (Mock.h (mkElemVar Mock.x))
                     , substitution =
-                        Substitution.wrap [(ElemVar Mock.x, gOfA), (ElemVar Mock.y, fOfA)]
+                        Substitution.wrap
+                            [(ElemVar Mock.x, gOfA), (ElemVar Mock.y, fOfA)]
                     }
             )
         )
@@ -147,7 +149,7 @@ test_forallSimplification =
         (assertEqual "forall on term"
             Conditional
                 { term = mkForall Mock.x (mkAnd fOfX (mkCeil_ gOfA))
-                , predicate = makeTruePredicate_
+                , predicate = makeTruePredicate Mock.testSort
                 , substitution = mempty
                 }
             (makeEvaluate
@@ -189,7 +191,7 @@ test_forallSimplification =
                         )
                         (mkEquals_ (mkElemVar Mock.y) fOfA)
                     )
-                , predicate = makeTruePredicate_
+                , predicate = makeTruePredicate Mock.testSort
                 , substitution = mempty
                 }
             (makeEvaluate
@@ -233,7 +235,7 @@ test_forallSimplification =
                             (mkAnd fOfX (mkEquals_ fOfX gOfA))
                             (mkEquals_ (mkElemVar Mock.y) hOfA)
                         )
-                , predicate = makeTruePredicate_
+                , predicate = makeTruePredicate Mock.testSort
                 , substitution = mempty
                 }
             (makeEvaluate

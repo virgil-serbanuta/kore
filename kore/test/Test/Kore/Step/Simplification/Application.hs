@@ -196,7 +196,10 @@ test_applicationSimplification =
                             , predicate =
                                 makeAndPredicate
                                     (makeAndPredicate
-                                        (makeEqualsPredicate_ fOfA fOfB)
+                                        (makeEqualsPredicate Mock.testSort
+                                            fOfA
+                                            fOfB
+                                        )
                                         (makeEqualsPredicate_ fOfA gOfA)
                                     )
                                     (makeEqualsPredicate_ gOfA gOfB)

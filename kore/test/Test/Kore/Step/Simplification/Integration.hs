@@ -34,6 +34,7 @@ import qualified Kore.Internal.Pattern as Pattern
 import Kore.Internal.Predicate
     ( makeAndPredicate
     , makeCeilPredicate_
+    , makeEqualsPredicate
     , makeEqualsPredicate_
     , makeFloorPredicate_
     , makeIffPredicate
@@ -185,7 +186,7 @@ test_simplificationIntegration =
     , testCase "map function, non-matching" $ do
         let
             initial =
-                Pattern.fromTermLike
+                Pattern.fromTermLikeUnsorted
                 $ Mock.function20MapTest (Mock.builtinMap []) Mock.a
             expect = OrPattern.fromPattern initial
         actual <-
@@ -425,7 +426,9 @@ test_simplificationIntegration =
     , testCase "simplification with top predicate (exists variable capture)"
       $ do
         let requirement =
-                makeEqualsPredicate_ (Mock.f (mkElemVar Mock.x)) (Mock.g Mock.b)
+                makeEqualsPredicate Mock.testSort
+                    (Mock.f (mkElemVar Mock.x))
+                    (Mock.g Mock.b)
             expect =
                 OrPattern.fromPatterns
                 [ Conditional
@@ -457,7 +460,9 @@ test_simplificationIntegration =
     , testCase "simplification with top predicate (forall variable capture)"
       $ do
         let requirement =
-                makeEqualsPredicate_ (Mock.f (mkElemVar Mock.x)) (Mock.g Mock.b)
+                makeEqualsPredicate Mock.testSort
+                    (Mock.f (mkElemVar Mock.x))
+                    (Mock.g Mock.b)
             expect =
                 OrPattern.fromPatterns
                 [ Conditional
@@ -488,7 +493,9 @@ test_simplificationIntegration =
         assertEqual "" expect actual
     , testCase "simplification with top predicate (nu variable capture)" $ do
         let requirement =
-                makeEqualsPredicate_ (Mock.f (mkSetVar Mock.setX)) (Mock.g Mock.b)
+                makeEqualsPredicate Mock.testSort
+                    (Mock.f (mkSetVar Mock.setX))
+                    (Mock.g Mock.b)
             expect =
                 OrPattern.fromPatterns
                 [ Conditional
@@ -519,7 +526,9 @@ test_simplificationIntegration =
         assertEqual "" expect actual
     , testCase "simplification with top predicate (mu variable capture)" $ do
         let requirement =
-                makeEqualsPredicate_ (Mock.f (mkSetVar Mock.setX)) (Mock.g Mock.b)
+                makeEqualsPredicate Mock.testSort
+                    (Mock.f (mkSetVar Mock.setX))
+                    (Mock.g Mock.b)
             expect =
                 OrPattern.fromPatterns
                 [ Conditional
@@ -585,11 +594,11 @@ test_simplificationIntegration =
                     , predicate = makeIffPredicate
                         (makeOrPredicate
                             (makeInPredicate_
-                                (mkCeil_ Mock.cf)
-                                (mkCeil_ Mock.cg)
+                                (mkCeil Mock.setSort Mock.cf)
+                                (mkCeil Mock.setSort Mock.cg)
                             )
                             (makeInPredicate_
-                                (mkCeil_ Mock.cf)
+                                (mkCeil Mock.setSort Mock.cf)
                                 (asInternal (Set.fromList []))
                             )
                         )
