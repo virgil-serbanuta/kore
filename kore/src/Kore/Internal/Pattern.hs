@@ -7,6 +7,7 @@ Representation of program configurations as conditional patterns.
 module Kore.Internal.Pattern
     ( Pattern
     , coerceSort
+    , patternSort
     , fromCondition
     , fromConditionSorted
     , bottom
@@ -65,6 +66,9 @@ import Kore.Internal.TermLike
     , termLikeSort
     )
 import qualified Kore.Internal.TermLike as TermLike
+import qualified Kore.Sort as Sort
+    ( predicateSort
+    )
 import Kore.TopBottom
     ( TopBottom (..)
     )
@@ -273,3 +277,10 @@ coerceSort
         , predicate = Predicate.coerceSort sort predicate
         , substitution
         }
+
+patternSort :: Pattern variable -> Sort
+patternSort Conditional {term, predicate} =
+    if termSort == Sort.predicateSort then predicateSort else termSort
+  where
+    termSort = termLikeSort term
+    predicateSort = Predicate.predicateSort predicate
