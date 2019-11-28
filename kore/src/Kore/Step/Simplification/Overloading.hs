@@ -112,9 +112,11 @@ overloadedAndEqualsOverloading
     notUnifiableType (DV_ _ _) = Just "injected domain value"
     notUnifiableType (BuiltinBool_ _) = Just "injected builtin bool"
     notUnifiableType (BuiltinInt_ _) = Just "injected builtin int"
-    notUnifiableType (BuiltinList_ _) = Just "injected builtin list"
-    notUnifiableType (BuiltinMap_ _) = Just "injected builtin map"
-    notUnifiableType (BuiltinSet_ _) = Just "injected builtin set"
+    -- The following types should be added when we are sure that they conflict
+    -- with overloaded constructors.
+    -- notUnifiableType (BuiltinList_ _) = Just "injected builtin list"
+    -- notUnifiableType (BuiltinMap_ _) = Just "injected builtin map"
+    -- notUnifiableType (BuiltinSet_ _) = Just "injected builtin set"
     notUnifiableType (BuiltinString_ _) = Just "injected builtin string"
     notUnifiableType _ = Nothing
 overloadedAndEqualsOverloading _ _ _ _ = empty
