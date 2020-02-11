@@ -332,6 +332,7 @@ prove
     evalProver definitionModule specModule maybeAlreadyProvenModule
     $ \initialized -> do
         let InitializedProver { axioms, claims, alreadyProven } = initialized
+        _ <- error "a"
         result <-
             runExceptT
             $ verify
