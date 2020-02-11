@@ -162,7 +162,8 @@ import qualified Kore.Strategies.Verification as StuckVerification
     ( StuckVerification (..)
     )
 import Kore.Unparser
-    ( unparseToText
+    ( unparseToString
+    , unparseToText
     , unparseToText2
     )
 import qualified Log
@@ -586,6 +587,7 @@ simplifyRuleOnSecond
     => (Attribute.Axiom Symbol, claim)
     -> simplifier (Attribute.Axiom Symbol, claim)
 simplifyRuleOnSecond (atts, rule) = do
+    traceM ("simplifyRuleOnSecond -> " ++ unparseToString rule)
     rule' <- Rule.simplifyRewriteRule (RewriteRule . Goal.toRulePattern $ rule)
     return (atts, Goal.fromRulePattern rule . getRewriteRule $ rule')
 
@@ -675,7 +677,10 @@ initializeProver definitionModule specModule maybeAlreadyProvenModule within =
         tools <- Simplifier.askMetadataTools
         let Initialized { rewriteRules } = initialized
             changedSpecClaims
-                :: [(Attribute.Axiom Symbol, MaybeChanged (ReachabilityRule Variable))]
+                ::  [   ( Attribute.Axiom Symbol
+                        , MaybeChanged (ReachabilityRule Variable)
+                        )
+                    ]
             changedSpecClaims =
                 map
                     (Bifunctor.second $ expandClaim tools)
