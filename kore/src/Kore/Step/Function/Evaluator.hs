@@ -125,8 +125,6 @@ evaluateApplication
     finishT :: ExceptT r simplifier r -> simplifier r
     finishT = exceptT return return
 
-    Application { applicationSymbolOrAlias = symbol } = application
-
     termLike = synthesize (ApplySymbolF application)
     unevaluated maybeSideCondition =
         return
@@ -143,8 +141,7 @@ evaluateApplication
         )
 
     canMemoize
-      | Symbol.isMemo symbol
-      , (isTop childrenCondition && isTop sideCondition)
+      | (isTop childrenCondition && isTop sideCondition)
         || all TermLike.isConstructorLike application
       = traverse asConcrete application
       | otherwise

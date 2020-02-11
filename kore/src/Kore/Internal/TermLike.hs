@@ -400,9 +400,13 @@ deciding if the result is @Nothing@ or @Just _@.
 
  -}
 asConcrete
-    :: TermLike variable
+    :: forall variable
+    .  TermLike variable
     -> Maybe (TermLike Concrete)
-asConcrete = traverseVariables (\case { _ -> Nothing })
+asConcrete term =
+    if Foldable.null (freeVariables term :: FreeVariables variable)
+        then traverseVariables (\case { _ -> Nothing }) term
+        else Nothing
 
 isConcrete :: TermLike variable -> Bool
 isConcrete = isJust . asConcrete
