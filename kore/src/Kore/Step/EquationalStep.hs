@@ -19,9 +19,9 @@ module Kore.Step.EquationalStep
 
 import Prelude.Kore
 
-import Control.Error
-    ( maybeT
-    )
+--import Control.Error
+--    ( maybeT
+--    )
 import qualified Control.Monad as Monad
 import qualified Control.Monad.State.Strict as State
 import qualified Control.Monad.Trans.Class as Monad.Trans
@@ -94,9 +94,9 @@ import Kore.Step.Step
 import qualified Kore.Step.Step as EqualityPattern
     ( toAxiomVariables
     )
-import Kore.Unification.UnifierT
-    ( UnifierT
-    )
+--import Kore.Unification.UnifierT
+--    ( UnifierT
+--    )
 import qualified Kore.Unification.UnifierT as Unifier
 import Kore.Unification.Unify
     ( InternalVariable
@@ -481,7 +481,7 @@ evaluateRequires
     -> unifier (Condition variable)
 evaluateRequires side initial solution requires = do
     let requires' = solution <> Condition.fromPredicate requires
-    requires'' <-
+    {-requires'' <-
         simplifyCondition requires'
         -- disable function evaluation:
         & withoutAxioms
@@ -490,8 +490,8 @@ evaluateRequires side initial solution requires = do
         -- if there is a unification error
         -- then continue with the original requirement,
         -- else continue with the partially-simplified requirement.
-        & maybeT (return requires') Unifier.scatter
-    simplifyCondition requires''
+        & maybeT (return requires') Unifier.scatter-}
+    simplifyCondition requires'
   where
     {- | Evaluate a 'Condition' simplifier without any axiom evaluation.
 
@@ -499,13 +499,14 @@ evaluateRequires side initial solution requires = do
     further simplified when axiom evaluation is enabled.
 
      -}
+     {-
     withoutAxioms
         :: UnifierT unifier (Condition variable)
         -> UnifierT unifier (Condition variable)
     withoutAxioms =
         fmap Condition.forgetSimplified
         . Simplifier.localSimplifierAxioms (const mempty)
-
+    -}
     side' = SideCondition.andCondition side initial
 
     simplifyCondition
